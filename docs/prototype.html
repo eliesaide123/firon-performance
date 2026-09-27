@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Firon Performance — iPhone 17 Pro Max Prototype</title>
+<style>
+  :root{
+    --accent:#c7ff3f;        /* energetic lime */
+    --accent-2:#7cf5c4;
+    --bg:#0b0f0d;
+    --surface:#14191b;
+    --surface-2:#1c2327;
+    --surface-3:#242c31;
+    --text:#f2f6f4;
+    --muted:#8c9a95;
+    --line:#242c2e;
+    --danger:#ff6b6b;
+    --radius:18px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #1a2b1f 0%, transparent 55%),
+      radial-gradient(1000px 700px at 110% 20%, #12242a 0%, transparent 50%),
+      #05070a;
+    min-height:100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:34px 16px;
+    color:var(--text);
+  }
+
+  /* ===== Stage layout ===== */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+  .stage-title{text-align:center;color:#e9f6ee}
+  .stage-title h1{font-size:20px;letter-spacing:.2px;font-weight:700}
+  .stage-title p{color:#7f8f89;font-size:13px;margin-top:4px}
+  .stage-title .pill{display:inline-block;margin-top:10px;font-size:11px;color:#0b0f0d;background:var(--accent);padding:4px 10px;border-radius:999px;font-weight:700}
+
+  /* ===== iPhone 17 Pro Max ===== */
+  .device{
+    --w:440px;
+    --h:952px;
+    position:relative;
+    width:var(--w);
+    height:var(--h);
+    border-radius:66px;
+    background:linear-gradient(150deg,#3a3f42,#0d0f10 45%,#2a2f31 100%);
+    padding:5px;
+    box-shadow:
+      0 0 0 2px #05070a,
+      0 40px 90px -20px rgba(0,0,0,.85),
+      inset 0 0 3px rgba(255,255,255,.25);
+  }
+  .device::before{ /* titanium rail highlight */
+    content:"";position:absolute;inset:2px;border-radius:63px;
+    padding:1px;background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 30%,transparent 70%,rgba(255,255,255,.18));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+  /* side buttons */
+  .btn-side{position:absolute;background:linear-gradient(#2a2f31,#15181a);border-radius:3px}
+  .btn-side.action{left:-3px;top:150px;width:4px;height:34px}
+  .btn-side.vol-up{left:-3px;top:210px;width:4px;height:60px}
+  .btn-side.vol-dn{left:-3px;top:288px;width:4px;height:60px}
+  .btn-side.power{right:-3px;top:230px;width:4px;height:96px}
+
+  .bezel{
+    position:relative;width:100%;height:100%;
+    border-radius:61px;background:#000;overflow:hidden;
+  }
+
+  .viewport{
+    position:absolute;inset:0;border-radius:61px;overflow:hidden;
+    background:var(--bg);display:flex;flex-direction:column;
+  }
+
+  /* Dynamic Island */
+  .island{
+    position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:126px;height:35px;background:#000;border-radius:20px;z-index:60;
+    display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:12px;
+  }
+  .island .cam{width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#243b52,#000 70%);box-shadow:inset 0 0 2px #4a6b8a}
+
+  /* Status bar */
+  .statusbar{
+    height:54px;flex:0 0 54px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 30px 8px;font-size:15px;font-weight:600;z-index:40;position:relative;color:var(--text);
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:7px}
+  .statusbar svg{display:block}
+
+  /* App body */
+  .app{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .screens{flex:1;position:relative;overflow:hidden}
+  .screen{
+    position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+    padding:6px 20px 26px;opacity:0;visibility:hidden;transform:translateX(14px);
+    transition:opacity .28s ease,transform .28s ease;
+    -webkit-overflow-scrolling:touch;
+  }
+  .screen::-webkit-scrollbar{width:0}
+  .screen.active{opacity:1;visibility:visible;transform:none}
+
+  /* sticky screen header (title + filters + segmented tabs) */
+  .sticky-head{
+    position:sticky;top:0;z-index:30;
+    margin:-6px -20px 0;padding:6px 20px 12px;
+    background:var(--bg);
+    box-shadow:0 10px 16px -12px rgba(0,0,0,.9);
+  }
+  .sticky-head::after{content:'';position:absolute;left:20px;right:20px;bottom:0;height:1px;background:var(--line);opacity:.7}
+
+  /* Home indicator */
+  .home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:135px;height:5px;border-radius:3px;background:rgba(255,255,255,.55);z-index:55}
+
+  /* ===== Typography / components ===== */
+  h2.screen-title{font-size:26px;font-weight:800;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:13px}
+  .row{display:flex;align-items:center;gap:12px}
+  .between{justify-content:space-between}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}
+  .grow{flex:1}
+  .muted{color:var(--muted)}
+  .accent{color:var(--accent)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;white-space:nowrap;transition:.15s}
+  .chip.active{background:var(--accent);color:#0b0f0d;border-color:var(--accent);font-weight:700}
+  .chip-scroll{display:flex;gap:9px;overflow-x:auto;padding:2px 0 4px;margin:0 -20px;padding-left:20px;padding-right:20px}
+  .chip-scroll::-webkit-scrollbar{display:none}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:15px;border:none;background:var(--accent);color:#0b0f0d;font-size:16px;font-weight:700;cursor:pointer;transition:.15s}
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  .btn.danger{background:transparent;color:var(--danger);border:1px solid rgba(255,107,107,.4)}
+
+  .field{margin-top:14px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:7px;font-weight:600}
+  .input{width:100%;padding:15px 14px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-size:15px;outline:none;transition:.15s}
+  .input:focus{border-color:var(--accent)}
+  input[type=time]{color-scheme:dark}
+  .input.err{border-color:var(--danger)}
+  .err-msg{color:var(--danger);font-size:12px;margin-top:6px;display:none}
+  .err-msg.show{display:block}
+
+  .avatar{border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#0b0f0d;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+
+  .thumb{border-radius:14px;position:relative;overflow:hidden;background:#20272b;display:flex;align-items:flex-end;color:#fff}
+  .thumb .grad{position:absolute;inset:0}
+  .thumb .dur{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);padding:3px 7px;border-radius:7px;font-size:11px;font-weight:600;z-index:2}
+  .thumb .fav{position:absolute;top:8px;right:8px;z-index:2;cursor:pointer;font-size:16px;background:rgba(0,0,0,.4);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .thumb .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+  .thumb .play span{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);color:#0b0f0d;display:flex;align-items:center;justify-content:center;font-size:16px;padding-left:3px}
+  .progressbar{position:absolute;bottom:0;left:0;height:4px;background:var(--accent);z-index:2}
+
+  .list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .list-item:last-child{border-bottom:none}
+
+  .checkbox{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+  .checkbox.done{background:var(--accent);border-color:var(--accent);color:#0b0f0d;font-weight:800}
+  .done-text{text-decoration:line-through;color:var(--muted)}
+
+  .seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+  .seg button{flex:1;padding:10px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;border-radius:9px;cursor:pointer}
+  .seg button.active{background:var(--accent);color:#0b0f0d}
+
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;flex:1}
+  .stat .n{font-size:22px;font-weight:800}
+  .stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .badge{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px}
+  .badge.warn{background:rgba(255,196,0,.15);color:#ffcf4a}
+  .badge.ok{background:rgba(124,245,196,.15);color:var(--accent-2)}
+  .badge.pt{background:rgba(199,255,63,.15);color:var(--accent)}
+
+  /* Bottom tab bar */
+  .tabbar{
+    flex:0 0 auto;display:flex;justify-content:space-around;align-items:center;
+    padding:10px 14px 24px;background:rgba(11,15,13,.85);backdrop-filter:blur(18px);
+    border-top:1px solid var(--line);position:relative;z-index:30;
+  }
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:10.5px;font-weight:600;cursor:pointer;flex:1;transition:.15s}
+  .tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .tab.active{color:var(--accent)}
+
+  /* progress ring (same language as the nutrition card) */
+  .ring{border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    background:conic-gradient(var(--accent) 0 var(--p,0%),var(--surface-3) var(--p,0%) 100%)}
+  .ring .inner{border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+
+  /* Header inside app */
+  .apphead{display:flex;align-items:center;gap:12px;padding:6px 0 2px}
+  .icon-btn{width:42px;height:42px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)}
+  .icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9}
+
+  /* OTP */
+  .otp{display:flex;gap:10px;justify-content:space-between;margin-top:8px}
+  .otp input{width:100%;aspect-ratio:1;text-align:center;font-size:24px;font-weight:700;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);outline:none}
+  .otp input:focus{border-color:var(--accent)}
+
+  /* role picker */
+  .role-card{flex:1;padding:16px;border-radius:15px;border:1px solid var(--line);background:var(--surface-2);text-align:center;cursor:pointer;transition:.15s}
+  .role-card.active{border-color:var(--accent);background:rgba(199,255,63,.08)}
+  .role-card .emoji{font-size:26px}
+  .role-card .role-ico{width:30px;height:30px;stroke:var(--text);fill:none;stroke-width:1.8;display:block;margin:0 auto}
+  .role-card.active .role-ico{stroke:var(--accent)}
+  .role-card .t{font-weight:700;margin-top:8px;font-size:14px}
+  .role-card .d{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* toast */
+  .toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:#eef4ef;color:#0b0f0d;padding:12px 18px;border-radius:14px;font-size:13.5px;font-weight:600;opacity:0;transition:.3s;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.4);white-space:nowrap;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* modal sheet */
+  .sheet-wrap{position:absolute;inset:0;z-index:70;display:none}
+  .sheet-wrap.open{display:block}
+  .sheet-back{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:26px 26px 0 0;padding:10px 20px 30px;transform:translateY(100%);transition:.32s cubic-bezier(.2,.8,.2,1);max-height:82%;overflow-y:auto}
+  .sheet-wrap.open .sheet{transform:none}
+  .grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:6px auto 14px}
+
+  .divider{height:1px;background:var(--line);margin:16px 0}
+  .kv{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted)}
+
+  .day{flex:0 0 auto;width:52px;text-align:center;padding:10px 0;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer}
+  .day.active{background:var(--accent);color:#0b0f0d;border-color:var(--accent)}
+  .day .dn{font-size:11px;font-weight:600;opacity:.7}
+  .day .dd{font-size:17px;font-weight:800;margin-top:2px}
+  .slot{padding:14px;border-radius:13px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;margin-top:10px;cursor:pointer;transition:.15s}
+  .slot.taken{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+  .slot.sel{border-color:var(--accent);background:rgba(199,255,63,.08)}
+
+  .fab{position:absolute;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#0b0f0d;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 12px 24px rgba(199,255,63,.3);cursor:pointer;z-index:20}
+
+  .hidden{display:none!important}
+
+  .search-in{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:0 14px}
+  .search-in input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;padding:14px 0}
+  .search-in svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2}
+
+  .meal-ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--accent) 0 62%,var(--surface-3) 62% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto}
+  .meal-ring .inner{width:92px;height:92px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+  /* ===== Real phone: fill the screen edge-to-edge like an installed app ===== */
+  @media (max-width:500px){
+    body{padding:0;display:block;background:#000;min-height:100dvh}
+    .stage{gap:0;width:100%}
+    .stage-title{display:none}
+    .device{width:100%;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none}
+    .device::before{display:none}
+    .btn-side{display:none}
+    .bezel{border-radius:0}
+    .viewport{border-radius:0}
+    .home-indicator{display:none}
+  }
+  /* If the phone is tall enough to show the full mockup, keep the pretty frame but shrink to fit width */
+  @media (max-width:500px) and (min-height:980px){
+    .device{width:min(100vw,440px);height:952px;margin:0 auto;border-radius:66px;padding:5px;box-shadow:0 20px 60px -20px rgba(0,0,0,.85)}
+    .device::before{display:block}
+    .bezel,.viewport{border-radius:61px}
+    .home-indicator{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-title">
+    <h1>Firon Performance — Personal Training</h1>
+    <p>Interactive prototype · iPhone 17 Pro Max</p>
+    <span class="pill">Core scope · optional features removed</span>
+  </div>
+
+  <div class="device">
+    <div class="btn-side action"></div>
+    <div class="btn-side vol-up"></div>
+    <div class="btn-side vol-dn"></div>
+    <div class="btn-side power"></div>
+    <div class="bezel">
+      <div class="viewport" id="viewport">
+        <div class="island"><div class="cam"></div></div>
+
+        <div class="statusbar">
+          <span id="clock">9:41</span>
+          <span class="icons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="#fff"/><rect x="4.5" y="5" width="3" height="7" rx="1" fill="#fff"/><rect x="9" y="3" width="3" height="9" rx="1" fill="#fff"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#fff"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l1.3-1.4C13.9 1.6 11.3.5 8.5.5S3.1 1.6 1.2 3.5L2.5 4.9C4.1 3.4 6.2 2.5 8.5 2.5z" fill="#fff"/><path d="M8.5 6c1.2 0 2.3.5 3.1 1.3l1.3-1.4C11.8 4.7 10.2 4 8.5 4S5.2 4.7 4.1 5.9l1.3 1.4C6.2 6.5 7.3 6 8.5 6z" fill="#fff"/><circle cx="8.5" cy="10" r="1.6" fill="#fff"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.5" y="0.5" width="21" height="12" rx="3.5" fill="none" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="16" height="9" rx="2" fill="#fff"/><rect x="23" y="4" width="2" height="5" rx="1" fill="#fff" opacity=".5"/></svg>
+          </span>
+        </div>
+
+        <div class="app">
+          <div class="screens" id="screens">
+            <!-- screens injected by JS -->
+          </div>
+
+          <!-- Bottom tab bar (client) -->
+          <div class="tabbar hidden" id="tabbar-client">
+            <div class="tab active" data-goto="home" data-tab>
+              <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span>Home</span>
+            </div>
+            <div class="tab" data-goto="workouts" data-tab>
+              <svg viewBox="0 0 24 24"><path d="M4 8v8M8 6v12M16 6v12M20 8v8"/><path d="M8 12h8"/></svg><span>Train</span>
+            </div>
+            <div class="tab" data-goto="videos" data-tab>
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg><span>Videos</span>
+            </div>
+            <div class="tab" data-goto="profile" data-tab>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Profile</span>
+            </div>
+          </div>
+
+          <!-- Bottom tab bar (PT) -->
+          <div class="tabbar hidden" id="tabbar-pt">
+            <div class="tab active" data-goto="pt-roster" data-tab>
+              <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M15 20c0-2.5 2-3.5 4-3.5"/></svg><span>Clients</span>
+            </div>
+            <div class="tab" data-goto="pt-builder" data-tab>
+              <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2.2"/></svg><span>Plans</span>
+            </div>
+            <div class="tab" data-goto="pt-uploads" data-tab>
+              <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg><span>Uploads</span>
+            </div>
+            <div class="tab" data-goto="pt-profile" data-tab>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Profile</span>
+            </div>
+          </div>
+
+          <div class="toast" id="toast"></div>
+
+          <!-- generic bottom sheet -->
+          <div class="sheet-wrap" id="sheet">
+            <div class="sheet-back" data-close-sheet></div>
+            <div class="sheet"><div class="grab"></div><div id="sheet-body"></div></div>
+          </div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   Firon Performance prototype — core (non-optional) feature set only
+   ========================================================= */
+const screensEl = document.getElementById('screens');
+const viewport = document.getElementById('viewport');
+let currentRole = 'client';
+let ptClient = 0;   /* client index the trainer is currently editing */
+let builderKind = 'train';   /* 'train' | 'diet' — which plan the builder is showing */
+let onboardMode = 'signup';  /* 'signup' after registering | 'edit' from the profile tab */
+let pendingOnboard = false;  /* OTP came from a new registration, not a password reset */
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ---------- bottom sheet ---------- */
+function openSheet(html){
+  document.getElementById('sheet-body').innerHTML=html;
+  document.getElementById('sheet').classList.add('open');
+}
+function closeSheet(){document.getElementById('sheet').classList.remove('open');}
+document.querySelectorAll('[data-close-sheet]').forEach(e=>e.addEventListener('click',closeSheet));
+
+/* ---------- navigation ---------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById('scr-'+id);
+  if(el){el.classList.add('active');el.scrollTop=0;}
+  // sync tabbars
+  document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.goto===id));
+  const showClientTabs=['home','workouts','videos','profile'].includes(id);
+  const showPtTabs=['pt-roster','pt-builder','pt-uploads','pt-profile'].includes(id);
+  document.getElementById('tabbar-client').classList.toggle('hidden',!showClientTabs);
+  document.getElementById('tabbar-pt').classList.toggle('hidden',!showPtTabs);
+}
+
+/* =========================================================
+   DATA
+   ========================================================= */
+/* the signed-in client — filled in at sign-up, shown on the Profile tab */
+const me={
+  name:'Elie Saide',email:'elie@firon.app',phone:'+961 70 123 456',
+  gender:'Male',age:31,height:178,weight:81.4,bodyfat:18.2,waist:84,
+  goal:'Fat loss',target:76,sessions:5,level:'Intermediate',
+};
+/* the signed-in trainer */
+const coach={
+  name:'Sara Khalil',email:'sara@firon.app',phone:'+961 71 456 789',
+  title:'Head Coach · Strength & Conditioning',studio:'Studio 2 · Beirut',
+  rate:'$45 / session',since:'2021',
+  certs:['NASM-CPT','Precision Nutrition L1','Kettlebell L2'],
+  availability:[
+    {d:'Mon',off:false,from:'07:00',to:'19:00'},
+    {d:'Tue',off:false,from:'07:00',to:'19:00'},
+    {d:'Wed',off:false,from:'07:00',to:'19:00'},
+    {d:'Thu',off:false,from:'07:00',to:'19:00'},
+    {d:'Fri',off:false,from:'07:00',to:'19:00'},
+    {d:'Sat',off:false,from:'09:00',to:'13:00'},
+    {d:'Sun',off:true,from:'09:00',to:'13:00'},
+  ],
+  prefs:{'New client requests':true,'Session reminders':true,'Weekly adherence report':false},
+};
+
+const GOALS=['Fat loss','Muscle gain','Strength','General fitness'];
+const initials=n=>n.trim().split(/\s+/).slice(0,2).map(x=>x[0].toUpperCase()).join('');
+const bmi=()=>me.height&&me.weight?(me.weight/Math.pow(me.height/100,2)).toFixed(1):'—';
+
+const grads=[
+  'linear-gradient(135deg,#134e5e,#71b280)','linear-gradient(135deg,#42275a,#734b6d)',
+  'linear-gradient(135deg,#0f2027,#2c5364)','linear-gradient(135deg,#603813,#b29f94)',
+  'linear-gradient(135deg,#1f4037,#99f2c8)','linear-gradient(135deg,#232526,#414345)',
+  'linear-gradient(135deg,#3a1c71,#d76d77)','linear-gradient(135deg,#093028,#237a57)'
+];
+const videos=[
+  {t:'Full Body HIIT',cat:'HIIT',dur:'24:10',prog:0.62,fav:true},
+  {t:'Deep Core Stability',cat:'Core',dur:'18:45',prog:0,fav:false},
+  {t:'Mobility Flow',cat:'Mobility',dur:'12:30',prog:0.3,fav:true},
+  {t:'Upper Push Strength',cat:'Strength',dur:'32:00',prog:0,fav:false},
+  {t:'Beginner Yoga Reset',cat:'Yoga',dur:'21:15',prog:0.85,fav:false},
+  {t:'Explosive Legs',cat:'Strength',dur:'28:40',prog:0,fav:true},
+];
+const week=[
+  {d:'Mon',t:'Full Body HIIT',st:'done',dur:'40 min',ex:['Burpees','Kettlebell Swing','Row Intervals','Mountain Climbers']},
+  {d:'Tue',t:'Upper Pull',st:'done',dur:'50 min',ex:['Pull-up','Barbell Row','Face Pull','Hammer Curl']},
+  {d:'Wed',t:'Lower Body Strength',st:'now',dur:'55 min',ex:[]},
+  {d:'Thu',t:'Push & Core',st:'todo',dur:'45 min',ex:['Bench Press','Overhead Press','Cable Fly','Hanging Leg Raise']},
+  {d:'Fri',t:'Conditioning',st:'todo',dur:'35 min',ex:['Assault Bike','Sled Push','Farmer Carry']},
+];
+const exercises=[
+  {n:'Goblet Squat',s:'4 × 12 · 20kg',done:true},
+  {n:'Romanian Deadlift',s:'4 × 10 · 40kg',done:true},
+  {n:'Incline Dumbbell Press',s:'3 × 12 · 18kg',done:false},
+  {n:'Walking Lunge',s:'3 × 20 steps',done:false},
+  {n:'Plank Hold',s:'3 × 45s',done:false},
+];
+const roster=[
+  {n:'Maya Khoury',plan:'Fat Loss · Wk 4',adh:92,status:'ok',
+   meal:{name:'Cutting Plan',kcal:1800,p:140,c:150,f:55,meals:[
+     {m:'Breakfast',f:'Oats, berries & whey',k:380},
+     {m:'Lunch',f:'Grilled chicken & quinoa',k:560},
+     {m:'Snack',f:'Greek yogurt & almonds',k:220},
+     {m:'Dinner',f:'Salmon & greens',k:520},
+   ]}},
+  {n:'Omar Haddad',plan:'Hypertrophy · Wk 2',adh:78,status:'ok',
+   meal:{name:'Lean Bulk',kcal:3100,p:190,c:340,f:90,meals:[
+     {m:'Breakfast',f:'Eggs, avocado toast & fruit',k:720},
+     {m:'Lunch',f:'Beef, rice & veg',k:900},
+     {m:'Pre-workout',f:'Banana & rice cakes',k:280},
+     {m:'Dinner',f:'Chicken pasta',k:820},
+   ]}},
+  {n:'Lina Aoun',plan:'Onboarding',adh:0,status:'new',
+   meal:{name:'',kcal:2000,p:120,c:200,f:65,meals:[]}},
+  {n:'Karim Nasr',plan:'Strength · Wk 7',adh:64,status:'warn',
+   meal:{name:'Maintenance',kcal:2600,p:170,c:260,f:80,meals:[
+     {m:'Breakfast',f:'Omelette & oats',k:600},
+     {m:'Lunch',f:'Turkey wrap & salad',k:700},
+     {m:'Dinner',f:'Steak & sweet potato',k:850},
+   ]}},
+];
+
+/* =========================================================
+   SCREEN TEMPLATES
+   ========================================================= */
+/* suggested videos: what the client hasn't started yet, with a reason */
+function suggested(){
+  const why=v=>
+    v.cat==='Strength'?'Matches your Lower Body plan':
+    v.cat==='Core'?'Coach Sara added this for you':
+    v.cat==='Mobility'||v.cat==='Yoga'?'Good recovery after today':
+    'Popular with clients this week';
+  const all=videos.map((v,i)=>({v,i}));
+  const fresh=all.filter(o=>!o.v.prog);
+  return (fresh.length?fresh:all).slice(0,3).map(o=>({...o,why:why(o.v)}));
+}
+
+function videoSheet(i){
+  const v=videos[i];
+  openSheet(`<h2 style="font-size:20px;font-weight:800">${v.t}</h2>
+  <p class="sub mt8">${v.cat} · ${v.dur}${v.prog>0?` · ${Math.round(v.prog*100)}% watched`:''}</p>
+  <div class="thumb mt16" style="height:190px;background:${grads[i%grads.length]}">
+    <div class="grad" style="background:linear-gradient(to top,rgba(0,0,0,.55),transparent 60%)"></div>
+    <div class="play"><span>▶</span></div>
+    <div class="dur">${v.dur}</div>
+    ${v.prog>0?`<div class="progressbar" style="width:${Math.round(v.prog*100)}%"></div>`:''}
+  </div>
+  <p class="sub mt16">Coach-approved session from your library. Follow along at your own pace — it counts toward your weekly target.</p>
+  <button class="btn mt20" onclick="startVideo(${i})">${v.prog>0?'Resume video':'Start video'}</button>
+  <button class="btn ghost mt12" onclick="toggleFavFromSheet(${i})">${v.fav?'♥ Remove from favorites':'♡ Save to favorites'}</button>`);
+}
+function startVideo(i){
+  const v=videos[i];
+  if(!v.prog)v.prog=0.05;
+  closeSheet();rebuild('home');rebuild('videos');
+  toast((v.prog>0.05?'Resuming ':'Playing ')+v.t);
+}
+function toggleFavFromSheet(i){
+  videos[i].fav=!videos[i].fav;
+  closeSheet();rebuild('videos');
+  toast(videos[i].fav?'Added to favorites':'Removed from favorites');
+}
+
+function thumb(v,i,h=150){
+  return `<div class="thumb" style="height:${h}px;background:${grads[i%grads.length]}">
+    <div class="grad" style="background:linear-gradient(to top,rgba(0,0,0,.55),transparent 60%)"></div>
+    <div class="fav" data-fav="${i}">${v.fav?'♥':'♡'}</div>
+    <div class="play"><span>▶</span></div>
+    <div class="dur">${v.dur}</div>
+    ${v.prog>0?`<div class="progressbar" style="width:${Math.round(v.prog*100)}%"></div>`:''}
+    <div style="position:relative;z-index:2;padding:10px 12px">
+      <div style="font-size:10px;opacity:.85;font-weight:600">${v.cat}</div>
+      <div style="font-size:14px;font-weight:700">${v.t}</div>
+    </div>
+  </div>`;
+}
+
+const SCREENS = {
+/* ---------- Auth: Login ---------- */
+login:()=>`
+  <div style="height:14px"></div>
+  <div class="row" style="gap:10px">
+    <div class="avatar" style="width:46px;height:46px;font-size:20px">◈</div>
+    <div><div style="font-weight:800;font-size:20px">Firon Performance</div><div class="sub">Train. Track. Transform.</div></div>
+  </div>
+  <div class="mt24">
+    <h2 class="screen-title">Welcome back</h2>
+    <p class="sub mt8">Sign in with email or phone</p>
+  </div>
+
+  <div class="mt20">
+    <div class="sub" style="font-weight:600;margin-bottom:10px">I am a…</div>
+    <div class="row">
+      <div class="role-card active" data-role="client">
+        <svg class="role-ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><div class="t">Client</div><div class="d">Train with my PT</div>
+      </div>
+      <div class="role-card" data-role="pt">
+        <svg class="role-ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M15 20c0-2.5 2-3.5 4-3.5"/></svg><div class="t">Trainer</div><div class="d">Manage clients</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Email or phone</label>
+    <input class="input" id="li-user" placeholder="you@email.com" value="elie@firon.app"/>
+    <div class="err-msg" id="li-user-err">Enter a valid email or phone number</div>
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input class="input" id="li-pass" type="password" placeholder="••••••••" value="password1"/>
+    <div class="err-msg" id="li-pass-err">Password must be at least 6 characters</div>
+  </div>
+  <div class="row between mt12" style="font-size:13px">
+    <label class="row" style="gap:8px;color:var(--muted)"><input type="checkbox" checked style="accent-color:var(--accent)"/> Remember me</label>
+    <a onclick="show('forgot')" class="accent" style="cursor:pointer;font-weight:600">Forgot password?</a>
+  </div>
+  <button class="btn mt20" onclick="doLogin()">Sign in</button>
+  <div class="row" style="justify-content:center;margin-top:16px;font-size:13.5px;color:var(--muted)">
+    New here? <a onclick="show('register')" class="accent" style="cursor:pointer;font-weight:700;margin-inline-start:6px">Create account</a>
+  </div>
+`,
+
+/* ---------- Auth: Register ---------- */
+register:()=>`
+  <div class="apphead"><div class="icon-btn" onclick="show('login')">‹</div><h2 class="screen-title" style="font-size:22px">Create account</h2></div>
+  <p class="sub mt8">Join Firon Performance in under a minute</p>
+  <div class="field"><label>Full name</label><input class="input" id="rg-name" placeholder="Elie Saide"/><div class="err-msg" id="rg-name-err">Please enter your name</div></div>
+  <div class="field"><label>Email</label><input class="input" id="rg-email" placeholder="you@email.com"/><div class="err-msg" id="rg-email-err">Enter a valid email</div></div>
+  <div class="field"><label>Phone</label><input class="input" id="rg-phone" placeholder="+961 ..."/><div class="err-msg" id="rg-phone-err">Enter a valid phone number</div></div>
+  <div class="field"><label>Password</label><input class="input" id="rg-pass" type="password" placeholder="Min. 6 characters"/><div class="err-msg" id="rg-pass-err">Password must be at least 6 characters</div></div>
+  <button class="btn mt20" onclick="doRegister()">Create account & verify</button>
+  <p class="sub" style="text-align:center;margin-top:14px;font-size:11px">We'll send a one-time code to verify you</p>
+`,
+
+/* ---------- Auth: Forgot ---------- */
+forgot:()=>`
+  <div class="apphead"><div class="icon-btn" onclick="show('login')">‹</div><h2 class="screen-title" style="font-size:22px">Reset password</h2></div>
+  <p class="sub mt8">Enter your email or phone and we'll send a one-time verification code.</p>
+  <div class="field"><label>Email or phone</label><input class="input" id="fg-user" placeholder="you@email.com"/><div class="err-msg" id="fg-user-err">Enter a valid email or phone</div></div>
+  <div class="seg mt16">
+    <button class="active" data-otp-method="email">Send via Email</button>
+    <button data-otp-method="sms">Send via SMS</button>
+  </div>
+  <button class="btn mt20" onclick="doForgot()">Send code</button>
+`,
+
+/* ---------- Auth: OTP ---------- */
+otp:()=>`
+  <div class="apphead"><div class="icon-btn" onclick="show('login')">‹</div><h2 class="screen-title" style="font-size:22px">Verify code</h2></div>
+  <p class="sub mt8">We sent a 4-digit code to <b id="otp-dest" class="accent">your device</b>.</p>
+  <div class="otp mt20" id="otp-inputs">
+    <input maxlength="1" inputmode="numeric"/><input maxlength="1" inputmode="numeric"/>
+    <input maxlength="1" inputmode="numeric"/><input maxlength="1" inputmode="numeric"/>
+  </div>
+  <div class="row between mt16" style="font-size:13px">
+    <span class="muted">Didn't get it?</span>
+    <a class="accent" style="cursor:pointer;font-weight:600" onclick="toast('Code resent')">Resend code</a>
+  </div>
+  <button class="btn mt20" onclick="doVerifyOtp()">Verify</button>
+  <p class="sub" style="text-align:center;margin-top:12px;font-size:11px">Demo code: 1 2 3 4</p>
+`,
+
+/* ---------- Onboarding: body stats & goals (also reused as "My details") ---------- */
+onboard:()=>{
+  const edit=onboardMode==='edit';
+  return `
+  <div class="apphead">${edit?`<div class="icon-btn" onclick="show('profile')">‹</div>`:''}<h2 class="screen-title" style="font-size:22px">${edit?'My details':'A bit about you'}</h2></div>
+  <p class="sub mt8">${edit?'Keep these current so coach Sara can adjust your plans':'Coach Sara uses this to build your training & diet plan'}</p>
+
+  <div class="sub mt20" style="font-weight:700;font-size:12.5px">Gender</div>
+  <div class="seg mt8" id="ob-gender">
+    ${['Male','Female','Other'].map(g=>`<button class="${me.gender===g?'active':''}" onclick="pickSeg(this)">${g}</button>`).join('')}
+  </div>
+
+  <div class="row mt16" style="gap:8px">
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Age</label><input class="input mt8" id="ob-age" inputmode="numeric" value="${me.age||''}" placeholder="yrs"/></div>
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Height (cm)</label><input class="input mt8" id="ob-height" inputmode="numeric" value="${me.height||''}" placeholder="178"/></div>
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Weight (kg)</label><input class="input mt8" id="ob-weight" inputmode="decimal" value="${me.weight||''}" placeholder="81.4"/></div>
+  </div>
+  <div class="err-msg" id="ob-body-err">Enter a realistic height (100–250 cm) and weight (30–300 kg)</div>
+
+  <div class="row mt12" style="gap:8px">
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Body fat % <span style="opacity:.6">(optional)</span></label><input class="input mt8" id="ob-bf" inputmode="decimal" value="${me.bodyfat||''}" placeholder="18.2"/></div>
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Waist (cm) <span style="opacity:.6">(optional)</span></label><input class="input mt8" id="ob-waist" inputmode="numeric" value="${me.waist||''}" placeholder="84"/></div>
+  </div>
+
+  <div class="sub mt20" style="font-weight:700;font-size:12.5px">Primary goal</div>
+  <div class="chip-scroll mt8" id="ob-goal">
+    ${GOALS.map(g=>`<div class="chip ${me.goal===g?'active':''}" onclick="pickChip(this)">${g}</div>`).join('')}
+  </div>
+
+  <div class="row mt16" style="gap:8px">
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Target weight (kg)</label><input class="input mt8" id="ob-target" inputmode="decimal" value="${me.target||''}" placeholder="76"/></div>
+  </div>
+
+  <div class="sub mt20" style="font-weight:700;font-size:12.5px">Sessions per week</div>
+  <div class="seg mt8" id="ob-sessions">
+    ${[2,3,4,5,6].map(n=>`<button class="${me.sessions===n?'active':''}" onclick="pickSeg(this)">${n}</button>`).join('')}
+  </div>
+
+  <div class="sub mt20" style="font-weight:700;font-size:12.5px">Training experience</div>
+  <div class="chip-scroll mt8" id="ob-level">
+    ${['Beginner','Intermediate','Advanced'].map(l=>`<div class="chip ${me.level===l?'active':''}" onclick="pickChip(this)">${l}</div>`).join('')}
+  </div>
+
+  <button class="btn mt24" onclick="saveMyDetails()">${edit?'Save changes':'Finish setup'}</button>
+  ${edit?'':'<p class="sub" style="text-align:center;margin-top:12px;font-size:11px">You can change all of this later in your profile</p>'}
+  <div style="height:10px"></div>
+`;},
+
+/* ---------- Client: Home (personalized feed) ---------- */
+home:()=>`
+  <div class="apphead">
+    <div class="avatar" style="width:44px;height:44px;font-size:16px">${initials(me.name)}</div>
+    <div class="grow"><div class="sub">Good morning</div><div style="font-weight:800;font-size:17px">${me.name.split(' ')[0]} 👋</div></div>
+    <div class="icon-btn" onclick="show('search')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div>
+  </div>
+
+  <div class="row mt16" style="gap:10px">
+    <div class="stat"><div class="n accent">3/5</div><div class="l">Sessions this wk</div></div>
+    <div class="stat"><div class="n">62%</div><div class="l">Plan progress</div></div>
+    <div class="stat"><div class="n">1,480</div><div class="l">kcal today</div></div>
+  </div>
+
+  <div class="card mt16" style="background:linear-gradient(135deg,#1f3a24,#122a2f);border-color:#2c4a34">
+    <div class="row between"><span class="badge pt">TODAY'S SESSION</span><span class="sub">6:00 PM</span></div>
+    <div style="font-weight:800;font-size:19px;margin-top:10px">Lower Body Strength</div>
+    <div class="sub mt8">With coach Sara · Studio 2 · 60 min</div>
+    <button class="btn mt16" style="padding:13px" onclick="show('workouts')">Start workout</button>
+  </div>
+
+  <div class="row between mt24"><h2 style="font-size:17px;font-weight:800">Suggested for you</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="show('videos')">View all</a></div>
+  <p class="sub" style="margin-top:3px;font-size:12.5px">Based on your plan &amp; coach Sara's library</p>
+  <div class="chip-scroll mt12" style="gap:12px">
+    ${suggested().map(o=>`
+      <div style="width:200px;flex:0 0 auto;cursor:pointer" onclick="videoSheet(${o.i})">
+        ${thumb(o.v,o.i,120)}
+        <div class="sub" style="margin-top:8px;font-size:11.5px;line-height:1.35">✨ ${o.why}</div>
+      </div>`).join('')}
+  </div>
+
+  <div class="row between mt24"><h2 style="font-size:17px;font-weight:800">Continue watching</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="show('videos')">View all</a></div>
+  <div class="chip-scroll mt12" style="gap:12px">
+    ${videos.map((v,i)=>({v,i})).filter(o=>o.v.prog>0).map(o=>`
+      <div style="width:200px;flex:0 0 auto;cursor:pointer" onclick="videoSheet(${o.i})">
+        ${thumb(o.v,o.i,120)}
+        <div class="sub" style="margin-top:8px;font-size:11.5px">${Math.round(o.v.prog*100)}% watched</div>
+      </div>`).join('')}
+  </div>
+
+  <div class="row between mt24"><h2 style="font-size:17px;font-weight:800">Your nutrition</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="show('nutrition')">View all</a></div>
+  <div class="card mt12" onclick="show('nutrition')" style="cursor:pointer">
+    <div class="row">
+      <div class="meal-ring" style="width:64px;height:64px"><div class="inner" style="width:48px;height:48px"><b style="font-size:13px">62%</b></div></div>
+      <div class="grow"><div style="font-weight:700">Cutting Plan · Day 3</div><div class="sub mt8">1,480 / 2,100 kcal · P 120g · C 140g · F 48g</div></div>
+      <span style="color:var(--muted)">›</span>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+`,
+
+/* ---------- Client: Workouts (assigned plans + check-off) ---------- */
+workouts:()=>`
+  <div class="apphead"><h2 class="screen-title">Train</h2></div>
+  <p class="sub">Assigned by coach Sara · updated today</p>
+
+  <div class="chip-scroll mt16">
+    <div class="chip active">This week</div><div class="chip">Program</div><div class="chip">History</div>
+  </div>
+
+  <div class="card mt16">
+    <div class="row" onclick="weekSheet()" style="cursor:pointer">
+      <div class="ring" style="--p:${Math.round(week.filter(d=>d.st==='done').length/week.length*100)}%;width:64px;height:64px">
+        <div class="inner" style="width:48px;height:48px"><b style="font-size:14px">${week.findIndex(d=>d.st==='now')+1}/${week.length}</b><span class="sub" style="font-size:9px">days</span></div>
+      </div>
+      <div class="grow">
+        <div style="font-weight:700">Lower Body Strength · Day 3</div>
+        <div class="sub mt8">${week.filter(d=>d.st==='done').length} of ${week.length} days done · ~55 min</div>
+      </div>
+      <span style="color:var(--muted)">›</span>
+    </div>
+    <div class="divider"></div>
+    <div id="ex-list">
+      ${exercises.map((e,i)=>`
+        <div class="list-item">
+          <div class="checkbox ${e.done?'done':''}" data-ex="${i}">${e.done?'✓':''}</div>
+          <div class="grow"><div class="${e.done?'done-text':''}" style="font-weight:600;font-size:15px">${e.n}${e.logged?' <span class="badge ok">Logged</span>':''}</div><div class="sub" style="margin-top:2px">${e.s}</div></div>
+          <div class="icon-btn" onclick="playExercise('${e.n}')" style="width:36px;height:36px"><svg viewBox="0 0 24 24" style="width:16px"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></div>
+        </div>`).join('')}
+    </div>
+    <div class="divider"></div>
+    <div class="row between"><span class="sub">Session progress</span><span class="accent" style="font-weight:700" id="ex-count">2 / 5</span></div>
+    <button class="btn mt16" onclick="finishSession()">Check off session ✓</button>
+    <button class="btn ghost mt12" onclick="logExerciseSheet()">+ Log an exercise</button>
+  </div>
+
+  <h2 style="font-size:17px;font-weight:800" class="mt24">Up next</h2>
+  <div class="card mt12" style="opacity:.7"><div class="row between"><div><div style="font-weight:700">Push & Core</div><div class="sub mt8">Day 4 · Tomorrow</div></div><span class="badge warn">Locked</span></div></div>
+`,
+
+/* ---------- Client: Video library ---------- */
+videos:()=>`
+  <div class="apphead"><h2 class="screen-title">Videos</h2><div class="grow"></div><div class="icon-btn" onclick="show('search')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div></div>
+  <div class="chip-scroll mt12" id="vid-cats">
+    <div class="chip active" data-cat="All">All</div>
+    <div class="chip" data-cat="HIIT">HIIT</div>
+    <div class="chip" data-cat="Strength">Strength</div>
+    <div class="chip" data-cat="Core">Core</div>
+    <div class="chip" data-cat="Mobility">Mobility</div>
+    <div class="chip" data-cat="Yoga">Yoga</div>
+    <div class="chip" data-cat="fav">♥ Favorites</div>
+  </div>
+  <div id="vid-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+    ${videos.map((v,i)=>thumb(v,i)).join('')}
+  </div>
+  <div style="height:10px"></div>
+`,
+
+/* ---------- Client: Global search ---------- */
+search:()=>`
+  <div class="apphead"><div class="icon-btn" onclick="show('home')">‹</div><div class="grow"></div></div>
+  <h2 class="screen-title">Search</h2>
+  <p class="sub mt8">Across videos, plans & content</p>
+  <div class="search-in mt16"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input id="q" placeholder="Try 'core', 'yoga', 'plan'…" oninput="runSearch(this.value)"/></div>
+  <div class="chip-scroll mt16"><div class="chip" onclick="document.getElementById('q').value='core';runSearch('core')">core</div><div class="chip" onclick="document.getElementById('q').value='hiit';runSearch('hiit')">HIIT</div><div class="chip" onclick="document.getElementById('q').value='yoga';runSearch('yoga')">yoga</div><div class="chip" onclick="document.getElementById('q').value='plan';runSearch('plan')">plan</div></div>
+  <div id="search-results" class="mt16"><p class="sub" style="text-align:center;margin-top:40px">Start typing to search your library</p></div>
+`,
+
+/* ---------- Client: Nutrition ---------- */
+nutrition:()=>`
+  <div class="apphead"><div class="icon-btn" onclick="show('home')">‹</div><h2 class="screen-title" style="font-size:22px">Nutrition</h2></div>
+  <p class="sub mt8">Cutting Plan · assigned by coach Sara</p>
+
+  <div class="card mt16" style="text-align:center">
+    <div class="meal-ring"><div class="inner"><b style="font-size:22px" id="kcal-now">1,480</b><span class="sub">/ 2,100 kcal</span></div></div>
+    <div class="row mt16" style="gap:8px">
+      <div class="stat" style="padding:10px"><div class="n" style="font-size:16px">120g</div><div class="l">Protein</div></div>
+      <div class="stat" style="padding:10px"><div class="n" style="font-size:16px">140g</div><div class="l">Carbs</div></div>
+      <div class="stat" style="padding:10px"><div class="n" style="font-size:16px">48g</div><div class="l">Fat</div></div>
+    </div>
+  </div>
+
+  <div class="row between mt24"><h2 style="font-size:17px;font-weight:800">Today's meals</h2></div>
+  <div id="meal-list" class="mt8">
+    ${[
+      {m:'Breakfast',f:'Oats, berries & whey',k:420,done:true},
+      {m:'Lunch',f:'Grilled chicken & rice',k:640,done:true},
+      {m:'Snack',f:'Greek yogurt & almonds',k:220,done:true},
+      {m:'Dinner',f:'Salmon & greens',k:200,done:false},
+    ].map((x,i)=>`
+      <div class="list-item">
+        <div class="checkbox ${x.done?'done':''}" data-meal="${i}" data-k="${x.k}">${x.done?'✓':''}</div>
+        <div class="grow"><div style="font-weight:600;font-size:15px" class="${x.done?'done-text':''}">${x.m}</div><div class="sub" style="margin-top:2px">${x.f}</div></div>
+        <div style="font-weight:700;font-size:14px">${x.k}<span class="sub"> kcal</span></div>
+      </div>`).join('')}
+  </div>
+  <button class="btn ghost mt20" onclick="logMealSheet()">+ Log a meal</button>
+`,
+
+/* ---------- Client: Profile ---------- */
+profile:()=>`
+  <div class="apphead"><h2 class="screen-title">Profile</h2></div>
+  <div class="card mt12" style="text-align:center">
+    <div class="avatar" style="width:88px;height:88px;font-size:32px;margin:0 auto">${initials(me.name)}</div>
+    <div style="font-weight:800;font-size:20px;margin-top:12px">${me.name}</div>
+    <div class="sub">${me.email} · ${me.phone}</div>
+    <span class="badge pt" style="margin-top:10px;display:inline-block">Client · Premium plan</span>
+  </div>
+
+  <div class="row between mt20"><h2 style="font-size:15px;font-weight:800">Body measurements</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="editMyDetails()">Edit</a></div>
+  <div class="card mt8">
+    <div class="kv"><span class="k">Gender · Age</span><span>${me.gender} · ${me.age||'—'}</span></div>
+    <div class="kv"><span class="k">Height</span><span>${me.height?me.height+' cm':'—'}</span></div>
+    <div class="kv"><span class="k">Weight</span><span>${me.weight?me.weight+' kg':'—'}</span></div>
+    <div class="kv"><span class="k">BMI</span><span>${bmi()}</span></div>
+    <div class="kv"><span class="k">Body fat</span><span>${me.bodyfat?me.bodyfat+'%':'—'}</span></div>
+    <div class="kv"><span class="k">Waist</span><span>${me.waist?me.waist+' cm':'—'}</span></div>
+  </div>
+
+  <h2 style="font-size:15px;font-weight:800" class="mt20">My goals</h2>
+  <div class="card mt8">
+    <div class="kv"><span class="k">Primary goal</span><span>${me.goal}</span></div>
+    <div class="kv"><span class="k">Target weight</span><span>${me.target?me.target+' kg':'—'}</span></div>
+    <div class="kv"><span class="k">Weekly sessions</span><span>${me.sessions}</span></div>
+    <div class="kv"><span class="k">Experience</span><span>${me.level}</span></div>
+  </div>
+
+  <button class="btn ghost mt20" onclick="editMyDetails()">Edit my details</button>
+  <button class="btn danger mt12" onclick="logout()">Log out</button>
+  <div style="height:8px"></div>
+`,
+
+/* ---------- PT: Roster ---------- */
+'pt-roster':()=>`
+  <div class="apphead"><div class="avatar" style="width:44px;height:44px;font-size:14px">${initials(coach.name)}</div><div class="grow"><div class="sub">Trainer portal</div><div style="font-weight:800;font-size:17px">Coach ${coach.name.split(' ')[0]}</div></div></div>
+  <div class="row mt12" style="gap:10px">
+    <div class="stat"><div class="n accent">4</div><div class="l">Active clients</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">Sessions this wk</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">New request</div></div>
+  </div>
+  <h2 style="font-size:17px;font-weight:800" class="mt20">Client roster</h2>
+  <div class="mt8">
+    ${roster.map((c,i)=>`
+      <div class="card mt12" onclick="clientSheet(${i})" style="cursor:pointer">
+        <div class="row">
+          <div class="avatar" style="width:44px;height:44px;font-size:14px">${c.n.split(' ').map(x=>x[0]).join('')}</div>
+          <div class="grow"><div style="font-weight:700">${c.n}</div><div class="sub mt8">${c.plan}</div></div>
+          ${c.status==='new'?'<span class="badge warn">New</span>':`<div style="text-align:right"><div style="font-weight:800;color:${c.adh>=80?'var(--accent)':c.adh>=70?'#ffcf4a':'var(--danger)'}">${c.adh}%</div><div class="sub" style="font-size:10px">adherence</div></div>`}
+        </div>
+      </div>`).join('')}
+  </div>
+`,
+
+/* ---------- PT: Plan builder — training + diet ---------- */
+'pt-builder':()=>{
+  const c=roster[ptClient];
+  return `
+  <div class="sticky-head">
+    <div class="apphead"><h2 class="screen-title" style="font-size:22px">Plans</h2></div>
+    <p class="sub">Build a training or diet plan for your client</p>
+
+    <div class="chip-scroll mt12">
+      ${roster.map((r,i)=>`<div class="chip ${i===ptClient?'active':''}" onclick="selectPlanClient(${i})">${r.n.split(' ')[0]}</div>`).join('')}
+    </div>
+
+    <div class="seg mt12">
+      <button class="${builderKind==='train'?'active':''}" onclick="setBuilderKind('train')">Training plan</button>
+      <button class="${builderKind==='diet'?'active':''}" onclick="setBuilderKind('diet')">Diet plan</button>
+    </div>
+  </div>
+
+  ${builderKind==='train'?trainBuilder(c):dietBuilder(c)}
+  <div style="height:10px"></div>
+`;},
+
+/* ---------- PT: Trainer profile ---------- */
+'pt-profile':()=>{
+  const avg=Math.round(roster.filter(c=>c.status!=='new').reduce((a,c)=>a+c.adh,0)/roster.filter(c=>c.status!=='new').length);
+  return `
+  <div class="apphead"><h2 class="screen-title">Profile</h2></div>
+
+  <div class="card mt12" style="text-align:center">
+    <div class="avatar" style="width:88px;height:88px;font-size:32px;margin:0 auto">${initials(coach.name)}</div>
+    <div style="font-weight:800;font-size:20px;margin-top:12px">${coach.name}</div>
+    <div class="sub">${coach.title}</div>
+    <div class="sub mt8">${coach.email} · ${coach.phone}</div>
+    <span class="badge pt" style="margin-top:10px;display:inline-block">Trainer · Verified</span>
+  </div>
+
+  <div class="row mt16" style="gap:10px">
+    <div class="stat"><div class="n accent">${roster.length}</div><div class="l">Clients</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">Sessions this wk</div></div>
+    <div class="stat"><div class="n">${avg}%</div><div class="l">Avg adherence</div></div>
+  </div>
+
+  <div class="row between mt20"><h2 style="font-size:15px;font-weight:800">Coaching details</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="editCoachSheet()">Edit</a></div>
+  <div class="card mt8">
+    <div class="kv"><span class="k">Studio</span><span>${coach.studio}</span></div>
+    <div class="kv"><span class="k">Session rate</span><span>${coach.rate}</span></div>
+    <div class="kv"><span class="k">Coaching since</span><span>${coach.since}</span></div>
+  </div>
+
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Certifications</h2>
+  <div class="card mt8">
+    ${coach.certs.map(c=>`<div class="kv"><span class="k">${c}</span><span class="badge ok">Verified</span></div>`).join('')}
+  </div>
+
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Notifications</h2>
+  <div class="card mt8">
+    ${Object.keys(coach.prefs).map(k=>`
+      <div class="kv"><span class="k">${k}</span>
+        <div class="chip ${coach.prefs[k]?'active':''}" style="padding:5px 12px;font-size:12px" onclick="togglePref('${k}')">${coach.prefs[k]?'On':'Off'}</div>
+      </div>`).join('')}
+  </div>
+
+  <div class="row between mt20"><h2 style="font-size:15px;font-weight:800">Availability</h2><a class="accent" style="font-size:13px;cursor:pointer" onclick="editAvailability()">Edit</a></div>
+  <div class="card mt8" onclick="availabilitySheet()" style="cursor:pointer">
+    <div class="row"><div class="grow"><div style="font-weight:700">${availabilitySummary()[0]}</div><div class="sub mt8">${availabilitySummary().slice(1).join(' · ')||'Tap to edit your hours'}</div></div><span style="color:var(--muted)">›</span></div>
+  </div>
+
+  <button class="btn danger mt20" onclick="logout()">Log out</button>
+  <div style="height:8px"></div>
+`;},
+
+/* ---------- PT: Media uploads (admin approval) ---------- */
+'pt-uploads':()=>`
+  <div class="apphead"><h2 class="screen-title" style="font-size:22px">Media uploads</h2></div>
+  <p class="sub">Exercise demos · reviewed by admin before publishing</p>
+  <div class="card mt16" style="border-style:dashed;text-align:center;cursor:pointer" onclick="uploadSheet()">
+    <div style="font-size:34px">⬆️</div>
+    <div style="font-weight:700;margin-top:8px">Upload demo video or image</div>
+    <div class="sub mt8">MP4 or JPG · routed through admin approval</div>
+  </div>
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Your uploads</h2>
+  <div class="mt8">
+    ${[
+      {n:'Deadlift form cue',s:'Video · 0:45',b:'ok',bt:'Approved'},
+      {n:'Kettlebell swing',s:'Video · 0:32',b:'warn',bt:'Pending review'},
+      {n:'Band pull-apart',s:'Image',b:'warn',bt:'Pending review'},
+    ].map((u,i)=>`
+      <div class="list-item">
+        <div class="thumb" style="width:64px;height:48px;background:${grads[i+2]}"></div>
+        <div class="grow"><div style="font-weight:600">${u.n}</div><div class="sub mt8">${u.s}</div></div>
+        <span class="badge ${u.b}">${u.bt}</span>
+      </div>`).join('')}
+  </div>
+`,
+};
+
+/* =========================================================
+   BUILD screens into DOM
+   ========================================================= */
+Object.keys(SCREENS).forEach(id=>{
+  const div=document.createElement('div');
+  div.className='screen';div.id='scr-'+id;div.innerHTML=SCREENS[id]();
+  screensEl.appendChild(div);
+});
+function rebuild(id){document.getElementById('scr-'+id).innerHTML=SCREENS[id]();}
+
+/* =========================================================
+   INTERACTIONS
+   ========================================================= */
+/* role picker on login */
+screensEl.addEventListener('click',e=>{
+  const rc=e.target.closest('[data-role]');
+  if(rc){document.querySelectorAll('[data-role]').forEach(x=>x.classList.remove('active'));rc.classList.add('active');currentRole=rc.dataset.role;}
+  const otpM=e.target.closest('[data-otp-method]');
+  if(otpM){otpM.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));otpM.classList.add('active');}
+});
+
+/* tab bar */
+document.querySelectorAll('[data-tab]').forEach(t=>t.addEventListener('click',()=>show(t.dataset.goto)));
+
+/* --- validation helpers --- */
+const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const isPhone=v=>/^[+]?[\d\s()-]{7,}$/.test(v);
+function setErr(id,show){const i=document.getElementById(id);const e=document.getElementById(id+'-err');if(i)i.classList.toggle('err',show);if(e)e.classList.toggle('show',show);}
+
+function doLogin(){
+  const u=document.getElementById('li-user').value.trim();
+  const p=document.getElementById('li-pass').value;
+  let ok=true;
+  if(!(isEmail(u)||isPhone(u))){setErr('li-user',true);ok=false;}else setErr('li-user',false);
+  if(p.length<6){setErr('li-pass',true);ok=false;}else setErr('li-pass',false);
+  if(!ok)return;
+  enterApp();
+}
+function doRegister(){
+  let ok=true;
+  const name=document.getElementById('rg-name').value.trim();
+  const email=document.getElementById('rg-email').value.trim();
+  const phone=document.getElementById('rg-phone').value.trim();
+  const pass=document.getElementById('rg-pass').value;
+  setErr('rg-name',!name);if(!name)ok=false;
+  setErr('rg-email',!isEmail(email));if(!isEmail(email))ok=false;
+  setErr('rg-phone',!isPhone(phone));if(!isPhone(phone))ok=false;
+  setErr('rg-pass',pass.length<6);if(pass.length<6)ok=false;
+  if(!ok)return;
+  me.name=name;me.email=email;me.phone=phone;
+  pendingOnboard=true;
+  document.getElementById('otp-dest')&&(document.getElementById('otp-dest').textContent=email);
+  rebuild('otp');
+  document.getElementById('scr-otp').querySelector('#otp-dest').textContent=email;
+  show('otp');initOtp();
+}
+function doForgot(){
+  const u=document.getElementById('fg-user').value.trim();
+  if(!(isEmail(u)||isPhone(u))){setErr('fg-user',true);return;}
+  setErr('fg-user',false);
+  pendingOnboard=false;
+  rebuild('otp');
+  document.getElementById('scr-otp').querySelector('#otp-dest').textContent=u;
+  show('otp');initOtp();
+}
+function initOtp(){
+  const inputs=[...document.querySelectorAll('#scr-otp .otp input')];
+  inputs.forEach((inp,i)=>{
+    inp.value='';
+    inp.oninput=()=>{if(inp.value&&inputs[i+1])inputs[i+1].focus();};
+    inp.onkeydown=e=>{if(e.key==='Backspace'&&!inp.value&&inputs[i-1])inputs[i-1].focus();};
+  });
+  inputs[0]&&inputs[0].focus();
+}
+function doVerifyOtp(){
+  const code=[...document.querySelectorAll('#scr-otp .otp input')].map(i=>i.value).join('');
+  if(code!=='1234'){toast('Invalid code — try 1234');return;}
+  if(pendingOnboard&&currentRole!=='pt'){
+    pendingOnboard=false;onboardMode='signup';rebuild('onboard');show('onboard');
+    document.querySelectorAll('.tabbar').forEach(t=>t.classList.add('hidden'));
+    toast('Account verified ✓');return;
+  }
+  pendingOnboard=false;enterApp();
+}
+
+/* onboarding / my details */
+function pickSeg(el){el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function pickChip(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+function editMyDetails(){onboardMode='edit';rebuild('onboard');show('onboard');}
+function saveMyDetails(){
+  const val=id=>document.getElementById(id).value.trim();
+  const h=parseFloat(val('ob-height')),w=parseFloat(val('ob-weight'));
+  const bad=!(h>=100&&h<=250)||!(w>=30&&w<=300);
+  document.getElementById('ob-body-err').classList.toggle('show',bad);
+  document.getElementById('ob-height').classList.toggle('err',!(h>=100&&h<=250));
+  document.getElementById('ob-weight').classList.toggle('err',!(w>=30&&w<=300));
+  if(bad)return;
+  const active=(sel,tag)=>{const el=document.querySelector(sel+' '+tag+'.active');return el?el.textContent.trim():null;};
+  me.height=h;me.weight=w;
+  me.age=parseInt(val('ob-age'),10)||me.age;
+  me.bodyfat=parseFloat(val('ob-bf'))||null;
+  me.waist=parseFloat(val('ob-waist'))||null;
+  me.target=parseFloat(val('ob-target'))||null;
+  me.gender=active('#ob-gender','button')||me.gender;
+  me.sessions=parseInt(active('#ob-sessions','button'),10)||me.sessions;
+  me.goal=active('#ob-goal','.chip')||me.goal;
+  me.level=active('#ob-level','.chip')||me.level;
+  rebuild('profile');rebuild('home');
+  if(onboardMode==='edit'){show('profile');toast('Details updated ✓');}
+  else{onboardMode='edit';enterApp();toast('Profile set up — welcome '+me.name.split(' ')[0]+' 👋');}
+}
+
+function enterApp(){
+  if(currentRole==='pt'){show('pt-roster');toast('Welcome, Coach 👋');}
+  else{show('home');toast('Signed in ✓');}
+}
+function logout(){currentRole='client';rebuild('login');show('login');document.querySelectorAll('.tabbar').forEach(t=>t.classList.add('hidden'));toast('Logged out');}
+
+/* favorites toggle (event delegation) */
+screensEl.addEventListener('click',e=>{
+  const f=e.target.closest('[data-fav]');
+  if(f){const i=+f.dataset.fav;videos[i].fav=!videos[i].fav;f.textContent=videos[i].fav?'♥':'♡';toast(videos[i].fav?'Added to favorites':'Removed');e.stopPropagation();}
+});
+
+/* workout check-off */
+screensEl.addEventListener('click',e=>{
+  const c=e.target.closest('[data-ex]');
+  if(c){const i=+c.dataset.ex;exercises[i].done=!exercises[i].done;rebuild('workouts');updateExCount();}
+  const m=e.target.closest('[data-meal]');
+  if(m){toggleMeal(m);}
+});
+function updateExCount(){
+  const done=exercises.filter(x=>x.done).length;
+  const el=document.getElementById('ex-count');if(el)el.textContent=done+' / '+exercises.length;
+}
+/* week overview + per-day detail */
+function weekSheet(){
+  const done=week.filter(d=>d.st==='done').length;
+  openSheet(`<h2 style="font-size:20px;font-weight:800">This week</h2>
+  <p class="sub mt8">Fat Loss · Week 4 · assigned by coach Sara</p>
+  <div class="card mt16" style="text-align:center">
+    <div class="ring" style="--p:${Math.round(done/week.length*100)}%;width:104px;height:104px;margin:0 auto">
+      <div class="inner" style="width:80px;height:80px"><b style="font-size:20px">${done}/${week.length}</b><span class="sub" style="font-size:10px">days done</span></div>
+    </div>
+  </div>
+  <div class="mt16">
+    ${week.map((d,i)=>`
+      <div class="list-item" onclick="daySheet(${i})" style="cursor:pointer">
+        <div class="checkbox ${d.st==='done'?'done':''}" style="font-size:12px;font-weight:700;color:${d.st==='now'?'var(--accent)':'var(--muted)'};${d.st==='now'?'border-color:var(--accent)':''}">${d.st==='done'?'✓':i+1}</div>
+        <div class="grow"><div style="font-weight:600;font-size:15px" class="${d.st==='done'?'done-text':''}">${d.t}</div><div class="sub" style="margin-top:2px">${d.d} · ${d.dur}</div></div>
+        ${d.st==='now'?'<span class="badge pt">Today</span>':d.st==='todo'?'<span class="badge warn">Locked</span>':''}
+      </div>`).join('')}
+  </div>
+  <button class="btn mt20" onclick="closeSheet()">Close</button>`);
+}
+
+/* per-day detail */
+function daySheet(i){
+  const d=week[i];
+  const list=d.st==='now'?exercises.map(e=>e.n):d.ex;
+  const state=d.st==='done'?'<span class="badge ok">Completed</span>':d.st==='now'?'<span class="badge pt">You are here</span>':'<span class="badge warn">Upcoming</span>';
+  openSheet(`<div class="row between"><h2 style="font-size:20px;font-weight:800">${d.t}</h2>${state}</div>
+  <p class="sub mt8">Day ${i+1} of ${week.length} · ${d.dur} · with coach Sara</p>
+  <div class="card mt16">
+    ${list.map(n=>`<div class="kv"><span class="k">${n}</span><span class="sub">${d.st==='done'?'✓':''}</span></div>`).join('')}
+  </div>
+  ${d.st==='now'
+    ?'<button class="btn mt20" onclick="closeSheet()">Back to today\'s session</button>'
+    :d.st==='done'
+      ?'<button class="btn ghost mt20" onclick="closeSheet();toast(\'Session already completed ✓\')">Repeat this session</button>'
+      :'<button class="btn ghost mt20" onclick="closeSheet();toast(\'Unlocks on '+d.d+'\')">Preview only · locked</button>'}`);
+}
+
+function playExercise(n){openSheet(`<h2 style="font-size:20px;font-weight:800">${n}</h2><p class="sub mt8">Demo video · coach approved</p>
+  <div class="thumb mt16" style="height:200px;background:${grads[3]}"><div class="play"><span>▶</span></div><div class="dur">0:45</div></div>
+  <p class="sub mt16">Keep your chest up, brace your core, and control the descent. 3 second eccentric on each rep.</p>
+  <button class="btn mt20" onclick="closeSheet()">Got it</button>`);}
+function finishSession(){
+  exercises.forEach(x=>x.done=true);rebuild('workouts');updateExCount();
+  openSheet(`<div style="text-align:center;padding:10px 0">
+    <div style="font-size:52px">🎉</div>
+    <h2 style="font-size:22px;font-weight:800;margin-top:10px">Session complete!</h2>
+    <p class="sub mt8">Lower Body Strength · Day 3 checked off</p>
+    <div class="row mt20" style="gap:10px"><div class="stat"><div class="n accent">55</div><div class="l">minutes</div></div><div class="stat"><div class="n">5/5</div><div class="l">exercises</div></div><div class="stat"><div class="n">4/5</div><div class="l">week sessions</div></div></div>
+    <button class="btn mt20" onclick="closeSheet();show('home')">Done</button>
+  </div>`);
+}
+
+/* videos: category filter */
+screensEl.addEventListener('click',e=>{
+  const cc=e.target.closest('#vid-cats .chip');
+  if(cc){
+    document.querySelectorAll('#vid-cats .chip').forEach(x=>x.classList.remove('active'));cc.classList.add('active');
+    const cat=cc.dataset.cat;
+    let list=videos.map((v,i)=>({v,i}));
+    if(cat==='fav')list=list.filter(o=>o.v.fav);
+    else if(cat!=='All')list=list.filter(o=>o.v.cat===cat);
+    document.getElementById('vid-grid').innerHTML=list.length?list.map(o=>thumb(o.v,o.i)).join(''):'<p class="sub" style="grid-column:1/3;text-align:center;padding:30px">No videos in this category</p>';
+  }
+});
+
+/* global search */
+function runSearch(q){
+  q=q.trim().toLowerCase();
+  const box=document.getElementById('search-results');
+  if(!q){box.innerHTML='<p class="sub" style="text-align:center;margin-top:40px">Start typing to search your library</p>';return;}
+  const vids=videos.filter(v=>v.t.toLowerCase().includes(q)||v.cat.toLowerCase().includes(q));
+  const plans=[{t:'Lower Body Strength',s:'Workout plan'},{t:'Cutting Plan',s:'Nutrition plan'},{t:'Push & Core',s:'Workout plan'}].filter(p=>p.t.toLowerCase().includes(q)||p.s.toLowerCase().includes(q));
+  let html='';
+  if(plans.length){html+='<div class="sub" style="font-weight:700;margin-bottom:8px">Plans</div>';html+=plans.map(p=>`<div class="list-item"><div class="avatar" style="width:38px;height:38px;font-size:14px">📋</div><div class="grow"><div style="font-weight:600">${p.t}</div><div class="sub mt8">${p.s}</div></div></div>`).join('');}
+  if(vids.length){html+='<div class="sub" style="font-weight:700;margin:14px 0 8px">Videos</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+vids.map(v=>thumb(v,videos.indexOf(v))).join('')+'</div>';}
+  box.innerHTML=html||'<p class="sub" style="text-align:center;margin-top:40px">No results found</p>';
+}
+
+/* nutrition */
+function toggleMeal(el){
+  const done=el.classList.toggle('done');
+  el.textContent=done?'✓':'';
+  el.parentElement.querySelector('.grow>div').classList.toggle('done-text',done);
+  const k=+el.dataset.k;
+  const now=document.getElementById('kcal-now');
+  let cur=parseInt(now.textContent.replace(/,/,''))||0;
+  cur+=done?k:-k;now.textContent=cur.toLocaleString();
+}
+function logMealSheet(){openSheet(`<h2 style="font-size:20px;font-weight:800">Log a meal</h2>
+  <div class="field"><label>Meal</label><input class="input" placeholder="e.g. Post-workout shake"/></div>
+  <div class="field"><label>Calories</label><input class="input" inputmode="numeric" placeholder="kcal"/></div>
+  <div class="row mt12" style="gap:8px"><input class="input" placeholder="Protein g"/><input class="input" placeholder="Carbs g"/><input class="input" placeholder="Fat g"/></div>
+  <button class="btn mt20" onclick="closeSheet();toast('Meal logged ✓')">Add to today</button>`);}
+
+/* log an extra exercise (client) */
+const exPresets=['Lat Pulldown','Leg Press','Bicep Curl','Seated Row','Treadmill Run','Bench Press'];
+function logExerciseSheet(){
+  openSheet(`<h2 style="font-size:20px;font-weight:800">Log an exercise</h2>
+  <p class="sub mt8">Something you did outside the plan — coach Sara will see it in your session.</p>
+  <div class="chip-scroll mt16">${exPresets.map(n=>`<div class="chip" onclick="document.getElementById('le-name').value='${n}';setErr('le-name',false)">${n}</div>`).join('')}</div>
+  <div class="field"><label>Exercise</label><input class="input" id="le-name" placeholder="e.g. Lat Pulldown"/><div class="err-msg" id="le-name-err">Enter an exercise name</div></div>
+  <div class="row mt12" style="gap:8px">
+    <input class="input" id="le-sets" inputmode="numeric" placeholder="Sets"/>
+    <input class="input" id="le-reps" inputmode="numeric" placeholder="Reps"/>
+    <input class="input" id="le-weight" inputmode="decimal" placeholder="kg"/>
+  </div>
+  <div class="field"><label>Notes (optional)</label><input class="input" id="le-note" placeholder="How did it feel?"/></div>
+  <button class="btn mt20" onclick="saveLoggedExercise()">Add to today's session</button>`);
+}
+function saveLoggedExercise(){
+  const name=document.getElementById('le-name').value.trim();
+  if(!name){setErr('le-name',true);return;}
+  setErr('le-name',false);
+  const sets=document.getElementById('le-sets').value.trim();
+  const reps=document.getElementById('le-reps').value.trim();
+  const wt=document.getElementById('le-weight').value.trim();
+  const note=document.getElementById('le-note').value.trim();
+  const parts=[];
+  if(sets&&reps)parts.push(sets+' × '+reps);
+  else if(sets)parts.push(sets+' sets');
+  else if(reps)parts.push(reps+' reps');
+  if(wt)parts.push(wt+'kg');
+  if(note)parts.push(note);
+  exercises.push({n:name,s:parts.join(' · ')||'Logged by you',done:true,logged:true});
+  closeSheet();
+  rebuild('workouts');updateExCount();
+  toast(name+' logged ✓');
+}
+
+/* PT: plan builder (training + diet) */
+
+function trainBuilder(c){return `
+  <div class="field" style="margin-top:18px"><label>Client</label><input class="input" value="${c.n}" readonly/></div>
+  <div class="field"><label>Program name</label><input class="input" id="pb-prog" value="${c.plan}" placeholder="e.g. Fat Loss — Week 5"/></div>
+
+  <div class="sub mt20" style="font-weight:700;font-size:12.5px">Start from</div>
+  <div class="chip-scroll mt8" id="pb-start">
+    <div class="chip active" onclick="pickStart(this)">Template</div>
+    <div class="chip" onclick="pickStart(this)">Blank</div>
+  </div>
+
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Exercise library</h2>
+  <div class="search-in mt8"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input placeholder="Search exercises…"/></div>
+  <div class="mt12" id="lib">
+    ${['Back Squat','Bench Press','Deadlift','Pull-up','Overhead Press','Bulgarian Split Squat'].map((e,i)=>`
+      <div class="list-item">
+        <div class="grow"><div style="font-weight:600">${e}</div><div class="sub mt8">Compound · barbell</div></div>
+        <div class="chip" data-add="${i}" onclick="this.classList.toggle('active');this.textContent=this.classList.contains('active')?'✓ Added':'+ Add';">+ Add</div>
+      </div>`).join('')}
+  </div>
+  <button class="btn mt20" onclick="saveTrainingPlan()">Assign training plan to ${c.n.split(' ')[0]}</button>
+`;}
+
+function dietBuilder(c){
+  const m=c.meal;
+  const total=m.meals.reduce((a,x)=>a+(+x.k||0),0);
+  const over=total>m.kcal;
+  return `
+  <div class="field" style="margin-top:18px"><label>Client</label><input class="input" value="${c.n}" readonly/></div>
+  <div class="field"><label>Plan name</label><input class="input" id="mp-name" value="${m.name}" placeholder="e.g. Cutting Plan — Week 5"/></div>
+
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Daily targets</h2>
+  <div class="field"><label>Calories (kcal)</label><input class="input" id="mp-kcal" inputmode="numeric" value="${m.kcal}"/></div>
+  <div class="row mt12" style="gap:8px">
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Protein g</label><input class="input mt8" id="mp-p" inputmode="numeric" value="${m.p}"/></div>
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Carbs g</label><input class="input mt8" id="mp-c" inputmode="numeric" value="${m.c}"/></div>
+    <div class="grow"><label class="sub" style="font-size:12px;font-weight:600">Fat g</label><input class="input mt8" id="mp-f" inputmode="numeric" value="${m.f}"/></div>
+  </div>
+
+  <div class="row between mt24"><h2 style="font-size:17px;font-weight:800">Meals</h2><span class="badge ${over?'warn':'ok'}">${total.toLocaleString()} / ${m.kcal.toLocaleString()} kcal</span></div>
+  <div class="card mt12">
+    ${m.meals.length?m.meals.map((x,i)=>`
+      <div class="list-item">
+        <div class="avatar" style="width:38px;height:38px;font-size:15px">🍽️</div>
+        <div class="grow" onclick="mealEditSheet(${i})" style="cursor:pointer"><div style="font-weight:600;font-size:15px">${x.m}</div><div class="sub" style="margin-top:2px">${x.f} · ${x.k} kcal</div></div>
+        <div class="icon-btn" onclick="removeClientMeal(${i})" style="width:36px;height:36px"><svg viewBox="0 0 24 24" style="width:16px"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></div>
+      </div>`).join(''):'<p class="sub" style="text-align:center;padding:18px 0">No meals yet — add the first one below</p>'}
+    <button class="btn ghost mt16" onclick="mealEditSheet(-1)">+ Add meal</button>
+  </div>
+
+  <button class="btn mt20" onclick="saveMealPlan()">Assign diet plan to ${c.n.split(' ')[0]}</button>
+`;}
+
+/* keep in-progress edits when the screen re-renders */
+function syncBuilderFields(){
+  const c=roster[ptClient];
+  const val=id=>{const el=document.getElementById(id);return el?el.value:null;};
+  if(builderKind==='diet'){
+    const n=val('mp-name');if(n!==null)c.meal.name=n.trim();
+    const num=(id,fb)=>{const v=parseInt(val(id),10);return v>0?v:fb;};
+    c.meal.kcal=num('mp-kcal',c.meal.kcal);c.meal.p=num('mp-p',c.meal.p);
+    c.meal.c=num('mp-c',c.meal.c);c.meal.f=num('mp-f',c.meal.f);
+  }else{
+    const pr=val('pb-prog');if(pr!==null&&pr.trim())c.plan=pr.trim();
+  }
+}
+function setBuilderKind(k){if(builderKind===k)return;syncBuilderFields();builderKind=k;rebuild('pt-builder');}
+function selectPlanClient(i){syncBuilderFields();ptClient=i;rebuild('pt-builder');}
+function pickStart(el){el.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
+
+/* entry points from the client sheet */
+function openTrainingPlan(i){ptClient=i;builderKind='train';rebuild('pt-builder');show('pt-builder');}
+function openMealPlan(i){ptClient=i;builderKind='diet';rebuild('pt-builder');show('pt-builder');}
+
+function saveTrainingPlan(){
+  syncBuilderFields();
+  const c=roster[ptClient];
+  const added=[...document.querySelectorAll('#lib .chip.active')].length;
+  rebuild('pt-builder');
+  toast(`Training plan assigned to ${c.n.split(' ')[0]}${added?` · ${added} exercises`:''} ✓`);
+}
+
+/* diet plan: meal rows */
+function mealEditSheet(i){
+  syncBuilderFields();
+  const list=roster[ptClient].meal.meals;
+  const x=i>=0?list[i]:{m:'',f:'',k:''};
+  openSheet(`<h2 style="font-size:20px;font-weight:800">${i>=0?'Edit meal':'Add meal'}</h2>
+  <p class="sub mt8">${roster[ptClient].n} · ${roster[ptClient].meal.name||'new plan'}</p>
+  <div class="chip-scroll mt16">${['Breakfast','Lunch','Snack','Pre-workout','Dinner'].map(n=>`<div class="chip" onclick="document.getElementById('me-slot').value='${n}';setErr('me-slot',false)">${n}</div>`).join('')}</div>
+  <div class="field"><label>Meal</label><input class="input" id="me-slot" value="${x.m}" placeholder="e.g. Breakfast"/><div class="err-msg" id="me-slot-err">Name the meal</div></div>
+  <div class="field"><label>Food</label><input class="input" id="me-food" value="${x.f}" placeholder="e.g. Oats, berries & whey"/><div class="err-msg" id="me-food-err">Describe the food</div></div>
+  <div class="field"><label>Calories</label><input class="input" id="me-k" inputmode="numeric" value="${x.k}" placeholder="kcal"/><div class="err-msg" id="me-k-err">Enter the calories</div></div>
+  <button class="btn mt20" onclick="saveClientMeal(${i})">${i>=0?'Save changes':'Add to plan'}</button>`);
+}
+function saveClientMeal(i){
+  const slot=document.getElementById('me-slot').value.trim();
+  const food=document.getElementById('me-food').value.trim();
+  const k=parseInt(document.getElementById('me-k').value,10);
+  let ok=true;
+  setErr('me-slot',!slot);if(!slot)ok=false;
+  setErr('me-food',!food);if(!food)ok=false;
+  setErr('me-k',!(k>0));if(!(k>0))ok=false;
+  if(!ok)return;
+  const list=roster[ptClient].meal.meals;
+  if(i>=0)list[i]={m:slot,f:food,k:k};else list.push({m:slot,f:food,k:k});
+  closeSheet();rebuild('pt-builder');
+  toast(i>=0?'Meal updated ✓':'Meal added ✓');
+}
+function removeClientMeal(i){
+  syncBuilderFields();
+  const removed=roster[ptClient].meal.meals.splice(i,1)[0];
+  rebuild('pt-builder');toast(removed.m+' removed');
+}
+function saveMealPlan(){
+  syncBuilderFields();
+  const c=roster[ptClient];
+  if(!c.meal.name){toast('Give the plan a name');return;}
+  rebuild('pt-builder');
+  toast('Diet plan assigned to '+c.n.split(' ')[0]+' ✓');
+}
+
+/* trainer profile */
+function togglePref(k){
+  coach.prefs[k]=!coach.prefs[k];
+  rebuild('pt-profile');
+  toast(k+(coach.prefs[k]?' on':' off'));
+}
+function editCoachSheet(){
+  openSheet(`<h2 style="font-size:20px;font-weight:800">Edit profile</h2>
+  <p class="sub mt8">Shown to your clients and on your plans</p>
+  <div class="field"><label>Full name</label><input class="input" id="co-name" value="${coach.name}"/><div class="err-msg" id="co-name-err">Please enter your name</div></div>
+  <div class="field"><label>Title</label><input class="input" id="co-title" value="${coach.title}"/></div>
+  <div class="field"><label>Email</label><input class="input" id="co-email" value="${coach.email}"/><div class="err-msg" id="co-email-err">Enter a valid email</div></div>
+  <div class="field"><label>Phone</label><input class="input" id="co-phone" value="${coach.phone}"/></div>
+  <div class="row mt12" style="gap:8px"><input class="input" id="co-studio" value="${coach.studio}" placeholder="Studio"/><input class="input" id="co-rate" value="${coach.rate}" placeholder="Rate"/></div>
+  <button class="btn mt20" onclick="saveCoach()">Save changes</button>`);
+}
+function saveCoach(){
+  const v=id=>document.getElementById(id).value.trim();
+  const name=v('co-name'),email=v('co-email');
+  let ok=true;
+  setErr('co-name',!name);if(!name)ok=false;
+  setErr('co-email',!isEmail(email));if(!isEmail(email))ok=false;
+  if(!ok)return;
+  coach.name=name;coach.email=email;
+  coach.title=v('co-title')||coach.title;coach.phone=v('co-phone')||coach.phone;
+  coach.studio=v('co-studio')||coach.studio;coach.rate=v('co-rate')||coach.rate;
+  closeSheet();rebuild('pt-profile');rebuild('pt-roster');
+  toast('Profile updated ✓');
+}
+function availabilitySummary(){
+  const a=coach.availability,key=d=>d.off?'off':d.from+'-'+d.to,parts=[];
+  let i=0;
+  while(i<a.length){
+    let j=i;
+    while(j+1<a.length&&key(a[j+1])===key(a[i]))j++;
+    parts.push((i===j?a[i].d:a[i].d+'–'+a[j].d)+' · '+(a[i].off?'Off':a[i].from+' – '+a[i].to));
+    i=j+1;
+  }
+  return parts;
+}
+let avDraft=null;   /* working copy — only committed when the trainer saves */
+
+/* read-only view: what tapping the availability card opens */
+function availabilitySheet(){
+  avDraft=null;
+  openSheet(`<div class="row between"><h2 style="font-size:20px;font-weight:800">Availability</h2><a class="accent" style="font-size:13px;cursor:pointer;font-weight:600" onclick="editAvailability()">Edit</a></div>
+  <p class="sub mt8">Clients can only book sessions inside these hours</p>
+  <div class="card mt16">
+    ${coach.availability.map(d=>`<div class="kv"><span class="k">${d.d}</span><span class="${d.off?'sub':''}">${d.off?'Off':d.from+' – '+d.to}</span></div>`).join('')}
+  </div>
+  <button class="btn mt20" onclick="editAvailability()">Edit hours</button>
+  <button class="btn ghost mt12" onclick="closeSheet()">Close</button>`);
+}
+
+/* editable version — works on a draft, so Cancel really cancels */
+function editAvailability(){
+  avDraft=coach.availability.map(d=>({...d}));
+  renderAvailabilityEditor();
+}
+function renderAvailabilityEditor(){
+  openSheet(`<h2 style="font-size:20px;font-weight:800">Edit availability</h2>
+  <p class="sub mt8">Set the hours you take bookings each day</p>
+  <div class="card mt16">
+    ${avDraft.map((d,i)=>`
+      <div class="row" style="gap:8px;padding:9px 0;${i?'border-top:1px solid var(--line)':''}">
+        <div style="width:34px;font-weight:700;font-size:13px;flex:0 0 auto">${d.d}</div>
+        <input class="input" type="time" id="av-from-${i}" value="${d.from}" ${d.off?'disabled':''} style="padding:9px;font-size:13px;${d.off?'opacity:.4':''}"/>
+        <span class="sub">–</span>
+        <input class="input" type="time" id="av-to-${i}" value="${d.to}" ${d.off?'disabled':''} style="padding:9px;font-size:13px;${d.off?'opacity:.4':''}"/>
+        <div class="chip ${d.off?'':'active'}" style="padding:6px 11px;font-size:12px;flex:0 0 auto" onclick="toggleDayOff(${i})">${d.off?'Off':'On'}</div>
+      </div>`).join('')}
+  </div>
+  <div class="err-msg" id="av-err">Each open day needs a start time earlier than its end time</div>
+  <div class="row mt12" style="gap:8px">
+    <div class="chip" onclick="applyToWeekdays()">Copy Mon to weekdays</div>
+    <div class="chip" onclick="closeWeekend()">Weekend off</div>
+  </div>
+  <button class="btn mt20" onclick="saveAvailability()">Save availability</button>
+  <button class="btn ghost mt12" onclick="availabilitySheet()">Cancel</button>`);
+}
+/* keep typed times in the draft when the editor re-renders */
+function readAvailability(){
+  avDraft.forEach((d,i)=>{
+    const f=document.getElementById('av-from-'+i),t=document.getElementById('av-to-'+i);
+    if(f&&f.value)d.from=f.value;
+    if(t&&t.value)d.to=t.value;
+  });
+}
+function toggleDayOff(i){readAvailability();avDraft[i].off=!avDraft[i].off;renderAvailabilityEditor();}
+function applyToWeekdays(){
+  readAvailability();
+  const m=avDraft[0];
+  avDraft.slice(1,5).forEach(d=>{d.from=m.from;d.to=m.to;d.off=m.off;});
+  renderAvailabilityEditor();toast('Mon hours copied to Tue–Fri');
+}
+function closeWeekend(){
+  readAvailability();
+  avDraft[5].off=true;avDraft[6].off=true;
+  renderAvailabilityEditor();toast('Weekend set to off');
+}
+function saveAvailability(){
+  readAvailability();
+  const bad=avDraft.some(d=>!d.off&&d.from>=d.to);
+  document.getElementById('av-err').classList.toggle('show',bad);
+  if(bad)return;
+  coach.availability=avDraft.map(d=>({...d}));avDraft=null;
+  closeSheet();rebuild('pt-profile');
+  const open=coach.availability.filter(d=>!d.off).length;
+  toast('Availability saved · '+open+' day'+(open===1?'':'s')+' open ✓');
+}
+function availabilitySummary(){
+  const a=coach.availability,key=d=>d.off?'off':d.from+'-'+d.to,parts=[];
+  let i=0;
+  while(i<a.length){
+    let j=i;
+    while(j+1<a.length&&key(a[j+1])===key(a[i]))j++;
+    parts.push((i===j?a[i].d:a[i].d+'–'+a[j].d)+' · '+(a[i].off?'Off':a[i].from+' – '+a[i].to));
+    i=j+1;
+  }
+  return parts;
+}
+
+/* PT sheets */
+function clientSheet(i){const c=roster[i];ptClient=i;openSheet(`<h2 style="font-size:20px;font-weight:800">${c.n}</h2><p class="sub mt8">${c.plan}</p>
+  <div class="row mt16" style="gap:10px"><div class="stat"><div class="n accent">${c.adh}%</div><div class="l">Adherence</div></div><div class="stat"><div class="n">Wk 4</div><div class="l">Program</div></div><div class="stat"><div class="n">3/5</div><div class="l">This week</div></div></div>
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Progress overview</h2>
+  <div class="card mt8"><div class="kv"><span class="k">Sessions completed</span><span>18</span></div><div class="kv"><span class="k">Weight change</span><span class="accent">−3.2 kg</span></div><div class="kv"><span class="k">Last active</span><span>Today</span></div></div>
+  <h2 style="font-size:15px;font-weight:800" class="mt20">Diet plan</h2>
+  <div class="card mt8"><div class="kv"><span class="k">Plan</span><span>${c.meal.name||'Not assigned yet'}</span></div><div class="kv"><span class="k">Daily target</span><span>${c.meal.kcal.toLocaleString()} kcal</span></div><div class="kv"><span class="k">Macros</span><span>P ${c.meal.p}g · C ${c.meal.c}g · F ${c.meal.f}g</span></div><div class="kv"><span class="k">Meals</span><span>${c.meal.meals.length}</span></div></div>
+  <button class="btn mt20" onclick="closeSheet();openTrainingPlan(${i})">Edit training plan</button>
+  <button class="btn ghost mt12" onclick="closeSheet();openMealPlan(${i})">Edit diet plan</button>`);}
+function uploadSheet(){openSheet(`<h2 style="font-size:20px;font-weight:800">Upload media</h2><p class="sub mt8">Will be routed to admin for approval before clients see it.</p>
+  <div class="field"><label>Title</label><input class="input" placeholder="e.g. Squat depth cue"/></div>
+  <div class="field"><label>Category</label><input class="input" placeholder="Strength"/></div>
+  <div class="card mt16" style="border-style:dashed;text-align:center"><div style="font-size:30px">📹</div><div class="sub mt8">Tap to choose file</div></div>
+  <button class="btn mt20" onclick="closeSheet();toast('Submitted for admin approval')">Submit for review</button>`);}
+
+/* live clock */
+function tick(){const d=new Date();let h=d.getHours(),m=d.getMinutes();const c=document.getElementById('clock');if(c)c.textContent=h+':'+String(m).padStart(2,'0');}
+setInterval(tick,10000);
+
+/* boot */
+show('login');
+</script>
+</body>
+</html>

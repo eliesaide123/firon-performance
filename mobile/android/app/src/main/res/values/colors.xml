@@ -1,0 +1,4 @@
+<resources>
+    <!-- CONTRACT §2 accent (lime). Used to tint the FCM/notifee small icon in the status bar. -->
+    <color name="notification_accent">#c7ff3f</color>
+</resources>

@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Firon Performance — CMS chrome tokens.
+
+   Colours, radii, spacing and the media gradients are NOT defined here: they
+   are injected at boot as CSS custom properties from `@firon/shared`
+   (src/lib/cssVariables.js -> fpCssVariables/FP_COLORS/FP_RADIUS/FP_SPACING/
+   FP_GRADIENTS). That keeps one source of truth with the mobile app and keeps
+   hex literals out of both components and stylesheets.
+
+   Only values the shared theme does not own live below.
+   ========================================================================== */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    Inter, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 72px;
+  --topbar-h: 62px;
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.85);
+  --shadow-md: 0 12px 30px -12px rgba(0, 0, 0, 0.7);
+
+  color-scheme: dark;
+}

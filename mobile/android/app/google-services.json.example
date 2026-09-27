@@ -1,0 +1,38 @@
+{
+  "_comment": [
+    "PLACEHOLDER — not a working config. See docs/FIREBASE.md.",
+    "Firebase console -> Project settings -> Your apps -> Android app -> Download google-services.json.",
+    "Save the real file as mobile/android/app/google-services.json (same directory as this file).",
+    "The real file is gitignored (.gitignore: **/google-services.json) — never commit it.",
+    "package_name MUST equal applicationId in mobile/android/app/build.gradle (com.fironperformance).",
+    "android/app/build.gradle only applies the google-services plugin when the real file exists, so",
+    "the Android build keeps working on a clone that has none — push is simply disabled."
+  ],
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "firon-performance",
+    "storage_bucket": "firon-performance.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.fironperformance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REPLACE_WITH_YOUR_ANDROID_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

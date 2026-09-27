@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Seed database
+        run: npm run seed
+        working-directory: backend
+        env:
+          MONGO_URI: mongodb://127.0.0.1:27017/firon_performance
+          JWT_ACCESS_SECRET: ci_access_secret
+          JWT_REFRESH_SECRET: ci_refresh_secret
+      - name: Boot and health-check
+        run: |
+          node src/server.js &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4000/api/health && break
+            sleep 2
+          done
+          curl -sf http://localhost:4000/api/health | tee /dev/stderr | grep -q '"status":"ok"'
+        working-directory: backend
+        env:
+          MONGO_URI: mongodb://127.0.0.1:27017/firon_performance
+          JWT_ACCESS_SECRET: ci_access_secret
+          JWT_REFRESH_SECRET: ci_refresh_secret
+
+  cms:
+    name: CMS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: cms/package-lock.json
+      - run: npm ci
+        working-directory: cms
+      - run: npm run build
+        working-directory: cms
+
+  mobile:
+    name: Mobile (typecheck + lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        working-directory: mobile
+      - run: npx tsc --noEmit
+        working-directory: mobile
+      - run: npx eslint . --max-warnings=0
+        working-directory: mobile
+        continue-on-error: true

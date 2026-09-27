@@ -1,0 +1,54 @@
+# deps
+node_modules/
+*/node_modules/
+.pnp/
+.pnp.js
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# build
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# backend runtime
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/firebase-service-account.json
+
+# firebase secrets
+**/google-services.json
+**/GoogleService-Info.plist
+
+# react native / ios / android
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/ios/*.xcworkspace/xcuserdata/
+mobile/ios/DerivedData/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+mobile/android/.cxx/
+mobile/.metro-health-check*
+mobile/vendor/
+
+# misc
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.pem
+.cache/
+tmp/

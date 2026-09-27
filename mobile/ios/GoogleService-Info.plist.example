@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PLACEHOLDER — not a working config. See docs/FIREBASE.md.
+
+  Firebase console -> Project settings -> Your apps -> iOS app -> Download GoogleService-Info.plist
+  Save the real file next to this one as:
+
+      mobile/ios/GoogleService-Info.plist
+
+  It must ALSO be added to the Xcode target ("FironPerformance" -> Build Phases -> Copy Bundle
+  Resources), or the app bundle will not contain it at runtime and Firebase stays disabled.
+  The real file is gitignored (.gitignore: **/GoogleService-Info.plist) — never commit it.
+
+  BUNDLE_ID below must match PRODUCT_BUNDLE_IDENTIFIER in
+  mobile/ios/FironPerformance.xcodeproj/project.pbxproj (currently com.fironperformance).
+-->
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>REPLACE_WITH_YOUR_IOS_API_KEY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>REPLACE_WITH_YOUR_SENDER_ID</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.fironperformance</string>
+	<key>PROJECT_ID</key>
+	<string>firon-performance</string>
+	<key>STORAGE_BUCKET</key>
+	<string>firon-performance.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<false/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<false/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:000000000000:ios:0000000000000000000000</string>
+</dict>
+</plist>

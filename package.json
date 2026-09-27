@@ -1,0 +1,25 @@
+{
+  "name": "firon-performance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firon Performance — CMS-driven personal training platform (shared Node/Express/MongoDB backend, React+Vite CMS, React Native CLI mobile app)",
+  "scripts": {
+    "backend": "npm --prefix backend run dev",
+    "cms": "npm --prefix cms run dev",
+    "mobile": "npm --prefix mobile start",
+    "ios": "npm --prefix mobile run ios",
+    "android": "npm --prefix mobile run android",
+    "seed": "npm --prefix backend run seed",
+    "seed:content": "npm --prefix backend run seed:content",
+    "install:all": "npm --prefix backend install && npm --prefix cms install && npm --prefix mobile install",
+    "pods": "cd mobile/ios && pod install",
+    "test:integration": "npm run test:proxy && npm run test:realtime && npm run test:authz",
+    "test:proxy": "npx tsx tests/clientProxy.test.ts",
+    "test:realtime": "node tests/realtime.test.js",
+    "typecheck:shared": "npm --prefix shared run typecheck",
+    "test:authz": "node tests/authorization.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

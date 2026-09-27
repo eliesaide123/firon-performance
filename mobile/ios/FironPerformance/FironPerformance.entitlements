@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  APNs environment. `development` is what a debug/ad-hoc build must use; Xcode rewrites it to
+	  `production` automatically for App Store / TestFlight archives, so this value does not need
+	  to change for release. See docs/FIREBASE.md.
+	-->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

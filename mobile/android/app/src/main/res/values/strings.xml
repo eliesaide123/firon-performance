@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FironPerformance</string>
+    <!--
+      The notification channel FCM falls back to when a push arrives while the app is killed and
+      the payload names no channel. MUST match the id created by src/push/channels.ts and the
+      channelId the backend sends (backend/src/services/pushService.js DEFAULT_CHANNEL_ID).
+    -->
+    <string name="default_notification_channel_id" translatable="false">firon-default</string>
+    <string name="default_notification_channel_name" translatable="false">Firon Performance</string>
+</resources>

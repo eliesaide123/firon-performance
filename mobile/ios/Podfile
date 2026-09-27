@@ -1,0 +1,62 @@
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+
+platform :ios, min_ios_version_supported
+
+# @react-native-firebase 26 resolves the Firebase iOS SDK through SPM by default,
+# which collides with React Native 0.87's static library linkage. Opt out so the
+# CocoaPods-distributed Firebase SDK is used instead.
+$RNFirebaseDisableSPM = true
+prepare_react_native_project!
+
+# ---------------------------------------------------------------------------------------------
+# Linkage decision for Firebase (docs/FIREBASE.md "Pods / linkage" explains this in full).
+#
+# The classic trap is reaching for a project-wide `use_frameworks!` to make Firebase's Swift pods
+# importable. Don't: with RN 0.87 + Hermes, `use_frameworks!` turns every pod into a dynamic
+# framework, which breaks the prebuilt React-Core / hermes-engine artifacts this project uses and
+# forces `:linkage => :static` gymnastics for Flipper. We keep the DEFAULT static-library layout
+# and instead grant `:modular_headers => true` to just the Google/Firebase C pods below, which is
+# all that is needed for FirebaseCore's umbrella headers to be `@import`-able from the Swift parts
+# of the Firebase SDK. `USE_FRAMEWORKS` is still honoured if you ever need to experiment, but the
+# supported configuration for this repo is the one you get with it unset.
+# ---------------------------------------------------------------------------------------------
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'FironPerformance' do
+  config = use_native_modules!
+
+  # Firebase's Swift pods need module maps to be importable from a static library.
+  # Scoped to the Google/Firebase C pods so the rest of the project keeps the
+  # default (faster, non-modular) header layout.
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseCoreExtension', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
+    )
+  end
+end
