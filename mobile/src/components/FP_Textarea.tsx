@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
 import { FP_COLORS, FP_RADIUS, FP_TYPE } from '../theme';
 import FP_Label from './FP_Label';
 import { useGuestGate } from '../guest/GuestGateProvider';
@@ -54,6 +54,14 @@ export const FP_Textarea: React.FC<FP_TextareaProps> = ({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
+        {gated ? (
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => gate('textarea')}
+            accessibilityRole="button"
+            accessibilityLabel="Sign in to edit"
+          />
+        ) : null}
       </View>
       <View style={styles.footer}>
         {error ? <Text style={styles.errMsg}>{error}</Text> : <View />}

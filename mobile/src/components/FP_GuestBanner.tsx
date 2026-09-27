@@ -13,7 +13,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { FP_COLORS, FP_RADIUS, FP_SPACING } from '../theme';
 import { useContent } from '../cms/ContentProvider';
 import { useGuestGate } from '../guest/GuestGateProvider';
-import FP_Icon from './FP_Icon';
 
 export interface FP_GuestBannerProps {
   testID?: string;

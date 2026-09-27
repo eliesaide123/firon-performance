@@ -34,6 +34,7 @@ import { useContent } from '../../cms/ContentProvider';
 import { useNotifications } from '../../store/NotificationsProvider';
 import { useToast } from '../../components/FP_ToastProvider';
 import useResource from '../../store/useResource';
+import { QK } from '../../store/queryCache';
 import type { RootStackParamList } from '../../navigation/types';
 import {
   PREVIEW_DIET_PLAN,
@@ -65,25 +66,25 @@ export const HomeScreen: React.FC = () => {
 
   const [openVideo, setOpenVideo] = useState<Video | null>(null);
 
-  const plan = useResource<TrainingPlan | null>('plans.training.me', () => api.plans.myTraining(), {
+  const plan = useResource<TrainingPlan | null>(QK.trainingPlan, () => api.plans.myTraining(), {
     enabled: !isGuest,
   });
-  const nutrition = useResource<NutritionToday>('nutrition.today', () => api.nutrition.today(), {
+  const nutrition = useResource<NutritionToday>(QK.nutritionToday, () => api.nutrition.today(), {
     enabled: !isGuest,
   });
   const suggested = useResource<SuggestedVideo[]>(
-    'home.suggested',
+    QK.suggested,
     () => api.videos.suggested(),
     { enabled: !isGuest },
   );
   const continueWatching = useResource<Video[]>(
-    'home.continue',
+    QK.continueWatching,
     () => api.videos.continueWatching(),
     { enabled: !isGuest },
   );
   /** Guest preview: the only video source that needs no token (CONTRACT §13.3). */
   const publicVideos = useResource<Video[]>(
-    'home.public_videos',
+    QK.videos('public'),
     async () => (await api.videos.list({ limit: 6 })).data,
     { enabled: isGuest },
   );

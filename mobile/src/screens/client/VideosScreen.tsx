@@ -29,6 +29,7 @@ import {
 import { useContent } from '../../cms/ContentProvider';
 import { useToast } from '../../components/FP_ToastProvider';
 import useResource from '../../store/useResource';
+import { QK } from '../../store/queryCache';
 import { useGuestGate } from '../../guest/GuestGateProvider';
 import type { ClientTabParamList, RootStackParamList } from '../../navigation/types';
 import { FP_COLORS, FP_GUTTER, FP_SPACING } from '../../theme';
@@ -58,12 +59,12 @@ export const VideosScreen: React.FC = () => {
 
   const tileWidth = Math.floor((width - FP_GUTTER * 2 - GRID_GAP) / 2);
 
-  const categories = useResource<Category[]>('videos.categories', () =>
+  const categories = useResource<Category[]>(QK.categories, () =>
     api.categories.list({ kind: 'video', activeOnly: true }),
   );
 
   const videos = useResource<Video[]>(
-    `videos.list:${selected}`,
+    QK.videos(selected),
     async () =>
       (
         await api.videos.list({

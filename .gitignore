@@ -52,3 +52,8 @@ mobile/vendor/
 *.pem
 .cache/
 tmp/
+
+# GitHub Actions workflows cannot be pushed by a token without the `workflow` OAuth scope.
+# The workflow lives at .github/workflows-pending/ci.yml until the scope is granted — see the
+# README there. Ignored so `git add -A` can't reintroduce the rejected push.
+.github/workflows/

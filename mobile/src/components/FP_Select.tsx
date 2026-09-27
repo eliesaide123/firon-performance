@@ -4,7 +4,7 @@ import { FP_COLORS, FP_RADIUS, FP_SPACING, FP_TYPE } from '../theme';
 import FP_Icon from './FP_Icon';
 import FP_Label from './FP_Label';
 import FP_Modal from './FP_Modal';
-import { useGatedPress, useGuestGate } from '../guest/GuestGateProvider';
+import { useGatedPress } from '../guest/GuestGateProvider';
 
 export interface FP_SelectOption<T extends string | number> {
   value: T;

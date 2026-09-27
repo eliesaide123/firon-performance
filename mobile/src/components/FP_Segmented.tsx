@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { FP_COLORS, FP_EXTRA_RADIUS, FP_SPACING } from '../theme';
-import { useGatedPress, useGuestGate } from '../guest/GuestGateProvider';
+import { useGatedPress } from '../guest/GuestGateProvider';
 
 export interface FP_SegmentedProps<T extends string | number> {
   /** Opt out of the guest gate (auth screens, the guest banner CTA, alert/toast controls). */

@@ -159,7 +159,8 @@ const PlansScreen: React.FC<PlansScreenProps> = ({ route }) => {
   const { toast } = useToast();
 
   const roster = useResource<RosterEntry[]>(QK.roster, () => api.clients.roster());
-  const entries = roster.data ?? [];
+  // useMemo so the `?? []` fallback is referentially stable (see ClientsScreen).
+  const entries = useMemo(() => roster.data ?? [], [roster.data]);
 
   const routeClientId = route?.params?.clientId;
   const routeKind = route?.params?.kind;

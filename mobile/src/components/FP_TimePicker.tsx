@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 import { FP_COLORS, FP_RADIUS, FP_SPACING, FP_TYPE } from '../theme';
 import FP_Modal from './FP_Modal';
-import { useGatedPress, useGuestGate } from '../guest/GuestGateProvider';
+import { useGatedPress } from '../guest/GuestGateProvider';
 
 export interface FP_TimePickerProps {
   /** Opt out of the guest gate (auth screens, the guest banner CTA, alert/toast controls). */

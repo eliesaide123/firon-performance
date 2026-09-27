@@ -9,7 +9,7 @@
  * `readAvailability()` has no work left to do: the draft is always current.
  */
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { AvailabilityDay } from '@firon/shared';
 import {
   FP_Button,

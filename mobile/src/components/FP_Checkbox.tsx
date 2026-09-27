@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, TextStyle, ViewStyle } from 'react-native';
 import { FP_COLORS, FP_RADIUS } from '../theme';
 import { FP_Icon } from './FP_Icon';
-import { useGatedPress, useGuestGate } from '../guest/GuestGateProvider';
+import { useGatedPress } from '../guest/GuestGateProvider';
 
 export interface FP_CheckboxProps {
   /** Opt out of the guest gate (auth screens, the guest banner CTA, alert/toast controls). */

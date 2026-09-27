@@ -5,7 +5,7 @@
  * suggestion chips above them (sourced from the real category list rather than hardcoded words).
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '@firon/shared';
@@ -28,6 +28,7 @@ import {
 import { useContent } from '../../cms/ContentProvider';
 import { useToast } from '../../components/FP_ToastProvider';
 import useResource from '../../store/useResource';
+import { QK } from '../../store/queryCache';
 import { useGuestGate } from '../../guest/GuestGateProvider';
 import type { RootStackParamList } from '../../navigation/types';
 import { FP_COLORS, FP_GUTTER, FP_SPACING, FP_TYPE } from '../../theme';
@@ -59,7 +60,7 @@ export const SearchScreen: React.FC = () => {
     return () => clearTimeout(handle);
   }, [query]);
 
-  const categories = useResource<Category[]>('search.categories', () =>
+  const categories = useResource<Category[]>(QK.categories, () =>
     api.categories.list({ kind: 'video', activeOnly: true }),
   );
 

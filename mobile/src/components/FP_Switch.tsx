@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProp, Switch, ViewStyle } from 'react-native';
 import { FP_COLORS } from '../theme';
-import { useGatedPress, useGuestGate } from '../guest/GuestGateProvider';
+import { useGatedPress } from '../guest/GuestGateProvider';
 
 export interface FP_SwitchProps {
   /** Opt out of the guest gate (auth screens, the guest banner CTA, alert/toast controls). */

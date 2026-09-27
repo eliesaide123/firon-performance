@@ -42,6 +42,7 @@ import {
 import { useContent } from '../../cms/ContentProvider';
 import { useToast } from '../../components/FP_ToastProvider';
 import useResource from '../../store/useResource';
+import { QK } from '../../store/queryCache';
 import { PREVIEW_TRAINING_PLAN } from '../../guest/previewData';
 import { FP_COLORS, FP_SPACING, FP_TYPE } from '../../theme';
 import { TAB_BAR_CLEARANCE, useClientContext } from './useClientContext';
@@ -95,7 +96,7 @@ export const TrainScreen: React.FC = () => {
   const [logError, setLogError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const plan = useResource<TrainingPlan | null>('plans.training.me', () => api.plans.myTraining(), {
+  const plan = useResource<TrainingPlan | null>(QK.trainingPlan, () => api.plans.myTraining(), {
     enabled: !isGuest,
   });
   const presets = useResource<Exercise[]>(

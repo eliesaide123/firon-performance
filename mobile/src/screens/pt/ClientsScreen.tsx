@@ -15,7 +15,6 @@ import {
   FP_Button,
   FP_BottomSheet,
   FP_Card,
-  FP_CmsText,
   FP_EmptyState,
   FP_ErrorState,
   FP_Icon,
@@ -75,7 +74,9 @@ const ClientsScreen: React.FC<ClientsScreenProps> = ({ navigation }) => {
     { enabled: Boolean(openId) },
   );
 
-  const entries = roster.data ?? [];
+  // useMemo so the `?? []` fallback doesn't allocate a new array each render and re-fire
+  // every hook that depends on it.
+  const entries = useMemo(() => roster.data ?? [], [roster.data]);
   const open = useMemo(() => entries.find(c => c.id === openId) ?? null, [entries, openId]);
 
   const refresh = useCallback(async () => {

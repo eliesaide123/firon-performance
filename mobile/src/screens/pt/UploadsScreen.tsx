@@ -90,7 +90,8 @@ const UploadsScreen: React.FC = () => {
     void mine.refresh();
   });
 
-  const assets = (mine.data ?? []) as MineAsset[];
+  // useMemo so the `?? []` fallback is referentially stable.
+  const assets = useMemo(() => (mine.data ?? []) as MineAsset[], [mine.data]);
   const uploading = progress !== null;
 
   const closeSheet = useCallback(() => {

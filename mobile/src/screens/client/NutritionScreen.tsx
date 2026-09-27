@@ -35,6 +35,7 @@ import {
 import { useContent } from '../../cms/ContentProvider';
 import { useToast } from '../../components/FP_ToastProvider';
 import useResource from '../../store/useResource';
+import { QK } from '../../store/queryCache';
 import { PREVIEW_DIET_PLAN } from '../../guest/previewData';
 import type { RootStackParamList } from '../../navigation/types';
 import { FP_COLORS, FP_SPACING, FP_TYPE } from '../../theme';
@@ -87,7 +88,7 @@ export const NutritionScreen: React.FC = () => {
   const [logError, setLogError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const today = useResource<NutritionToday>('nutrition.today', () => api.nutrition.today(), {
+  const today = useResource<NutritionToday>(QK.nutritionToday, () => api.nutrition.today(), {
     enabled: !isGuest,
   });
 

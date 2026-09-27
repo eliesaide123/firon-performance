@@ -20,7 +20,6 @@ import {
   FP_Button,
   FP_Card,
   FP_Chip,
-  FP_CmsText,
   FP_ErrorState,
   FP_Icon,
   FP_KeyValueRow,
