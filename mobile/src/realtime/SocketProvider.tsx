@@ -21,6 +21,7 @@ import log from '../log';
 import queryCache, { QK } from '../store/queryCache';
 import { useNotificationsBadge } from '../store/NotificationsProvider';
 import { useToast } from '../components/FP_ToastProvider';
+import { fpAlert } from '@firon/shared';
 import type { AppNotification, MediaStatus } from '@firon/shared';
 import socketManager, { SocketHandler } from './socket';
 
@@ -35,15 +36,15 @@ const SocketContext = createContext<SocketContextValue>({
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { signedIn, role, user } = useAuth();
+  const { signedIn, role, user, logout } = useAuth();
   const { toast } = useToast();
   const { setUnread, refreshUnread, showBanner } = useNotificationsBadge();
   const { t } = useContent();
   const [connected, setConnected] = useState(false);
 
   /* Handlers read the latest callbacks through a ref so subscriptions are set up once. */
-  const cb = useRef({ toast, setUnread, refreshUnread, showBanner, t });
-  cb.current = { toast, setUnread, refreshUnread, showBanner, t };
+  const cb = useRef({ toast, setUnread, refreshUnread, showBanner, t, logout });
+  cb.current = { toast, setUnread, refreshUnread, showBanner, t, logout };
 
   /* ---- connect / disconnect with the session ---- */
   useEffect(() => {
@@ -125,6 +126,22 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     on('video:updated', refreshLibrary);
     on('video:deleted', refreshLibrary);
     on('category:changed', refreshLibrary);
+
+    /* ---- account state ---- */
+    // An admin deactivated this account. The server pushes this immediately and then drops the
+    // socket, so this is the only chance to explain what happened before the session ends.
+    on('account:deactivated', () => {
+      log.warn('account deactivated by an admin — signing out');
+      fpAlert.error(
+        cb.current.t('account.deactivated_title'),
+        cb.current.t('account.deactivated_body'),
+        {
+          actions: [{ label: cb.current.t('account.deactivated_cta'), kind: 'primary' }],
+        },
+      );
+      // Clears tokens and resets the navigator back to the auth stack.
+      void cb.current.logout();
+    });
 
     /* ---- uploads ---- */
     on('media:status', payload => {

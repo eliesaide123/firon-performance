@@ -41,6 +41,8 @@ export const FP_SOCKET_EVENTS = {
   NOTIFICATION_NEW: 'notification:new',
   NOTIFICATION_COUNT: 'notification:count',
   NOTIFICATION_READ: 'notification:read',
+  /* account state */
+  ACCOUNT_DEACTIVATED: 'account:deactivated',
   /* presence + dashboard */
   PRESENCE_UPDATE: 'presence:update',
   DASHBOARD_TICK: 'dashboard:tick',
@@ -133,6 +135,16 @@ export interface NotificationCountPayload {
   unread: number;
 }
 
+/**
+ * Pushed to every socket of a user an admin has just deactivated, immediately before the server
+ * drops those connections. Clients show the CMS `account.deactivated_*` copy and return to login.
+ */
+export interface AccountDeactivatedPayload {
+  userId: string;
+  reason: 'deactivated';
+  at: string;
+}
+
 export interface PresenceUpdatePayload {
   userId: string;
   online: boolean;
@@ -163,6 +175,7 @@ export interface FPServerEvents {
   'notification:new': NotificationNewPayload;
   'notification:count': NotificationCountPayload;
   'notification:read': { id: string; unread: number };
+  'account:deactivated': AccountDeactivatedPayload;
   'presence:update': PresenceUpdatePayload;
   'dashboard:tick': DashboardTickPayload;
 }

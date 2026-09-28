@@ -7,6 +7,15 @@ require Pod::Executable.execute_command('node', ['-p',
 
 platform :ios, min_ios_version_supported
 
+# Xcode 27 only accepts iOS deployment targets in the range 15.0–27.0. Several third-party pods —
+# and, more often, the *_Privacy resource bundles CocoaPods generates for them — still declare
+# 9.0–13.0, which fails the build outright with:
+#   "The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the
+#    range of supported deployment target versions is 15.0 to 27.0.x."
+# The post_install hook below raises every pod target to this floor. Keep it in step with the
+# app target's own IPHONEOS_DEPLOYMENT_TARGET.
+FIRON_IOS_MIN = '15.1'
+
 # @react-native-firebase 26 resolves the Firebase iOS SDK through SPM by default,
 # which collides with React Native 0.87's static library linkage. Opt out so the
 # CocoaPods-distributed Firebase SDK is used instead.
@@ -58,5 +67,30 @@ target 'FironPerformance' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Raise any pod target below FIRON_IOS_MIN. react_native_post_install does not touch the
+    # generated resource-bundle targets, which are the ones that actually fail under Xcode 27.
+    bumped = []
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |bc|
+        current = bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current.nil? || current.to_f < FIRON_IOS_MIN.to_f
+          bumped << "#{target.name} (#{current || 'unset'})"
+          bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = FIRON_IOS_MIN
+        end
+      end
+    end
+
+    # The Pods project's own configurations too, so newly generated targets inherit the floor.
+    installer.pods_project.build_configurations.each do |bc|
+      current = bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      if current.nil? || current.to_f < FIRON_IOS_MIN.to_f
+        bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = FIRON_IOS_MIN
+      end
+    end
+
+    unless bumped.empty?
+      Pod::UI.puts "Raised #{bumped.uniq.length} pod target(s) to iOS #{FIRON_IOS_MIN}".green
+    end
   end
 end

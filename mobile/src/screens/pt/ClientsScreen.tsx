@@ -39,10 +39,8 @@ import { fpDash, fpFirstName, fpGroupNumber, fpLastActive, fpWeightDelta } from 
  * The server sends `meals` (a count) and an `id` where the shared DTO names `mealCount`.
  * Widened rather than re-declared so the shared type stays the single source of truth.
  */
-type RosterDietSummary = NonNullable<RosterEntry['dietPlanSummary']> & {
-  id?: string;
-  meals?: number;
-};
+/** The shared DTO now matches the server exactly (`id` + `meals`), so no widening is needed. */
+type RosterDietSummary = NonNullable<RosterEntry['dietPlanSummary']>;
 
 /** `GET /clients/:id` returns richer week/session counters than the shared DTO spells out. */
 type ClientDetailStats = ClientDetail['stats'] &
@@ -107,7 +105,7 @@ const ClientsScreen: React.FC<ClientsScreenProps> = ({ navigation }) => {
   const sheetDiet = detail.data?.dietPlan ?? null;
   const dietName = sheetDiet?.name ?? diet?.name ?? null;
   const dietKcal = sheetDiet?.kcal ?? diet?.kcal ?? 0;
-  const dietMeals = sheetDiet?.meals?.length ?? diet?.meals ?? diet?.mealCount ?? 0;
+  const dietMeals = sheetDiet?.meals?.length ?? diet?.meals ?? diet?.meals ?? 0;
 
   return (
     <FP_Screen onRefresh={refresh} refreshing={roster.loading && !roster.initialLoading}>

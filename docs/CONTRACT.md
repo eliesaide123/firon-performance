@@ -21,7 +21,7 @@ firon-performance/
 | Socket.IO path | `/socket.io` (default) |
 | API prefix | `/api` |
 | Static uploads | `http://localhost:4000/uploads/<filename>` |
-| CMS dev server | `http://localhost:5173` |
+| CMS dev server | `http://localhost:5175` (5173/5174 are used by other projects on this machine; `strictPort` is set) |
 | Mongo URI | `mongodb://127.0.0.1:27017/firon_performance` |
 | iOS simulator -> backend | `http://localhost:4000` |
 | Android emulator -> backend | `http://10.0.2.2:4000` |
@@ -43,7 +43,9 @@ OTP_TTL_MINUTES=10
 OTP_DEV_CODE=1234
 ```
 
-`cms/.env` -> `VITE_API_URL=http://localhost:4000/api`, `VITE_SOCKET_URL=http://localhost:4000`
+`cms/.env` -> `VITE_API_URL=http://[::1]:4000/api`, `VITE_SOCKET_URL=http://[::1]:4000`
+(the IPv6 literal is deliberate: an unrelated project holds IPv4 `:4000` on this machine, so
+plain `localhost` can resolve to the wrong server — see `backend/README.md`)
 
 ## 2. Design tokens (from the approved prototype) — use EVERYWHERE
 

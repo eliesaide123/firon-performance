@@ -12,7 +12,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    // 5173 and 5174 are used by other projects on this machine, so pin ours explicitly and
+    // fail loudly rather than silently sliding onto someone else's port.
+    port: 5175,
+    strictPort: true,
     // Vite must be allowed to read ../shared during dev.
     fs: { allow: ['..'] },
   },

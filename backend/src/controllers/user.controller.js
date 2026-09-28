@@ -9,7 +9,7 @@ const { escapeRegex, initials } = require('../utils/text');
 const { absoluteUrl } = require('../utils/urls');
 const logger = require('../utils/logger');
 const notificationService = require('../services/notificationService');
-const { emitToCoach } = require('../realtime/emit');
+const { emitToCoach, disconnectUser } = require('../realtime/emit');
 
 const BCRYPT_COST = 10;
 
@@ -239,8 +239,29 @@ exports.setActive = asyncHandler(async (req, res) => {
   const trainerId = idOf(user.clientProfile && user.clientProfile.trainerId);
   if (user.role === 'client' && trainerId) emitToCoach(trainerId, 'roster:updated', { trainerId });
 
-  logger.info({ userId: String(user._id), isActive, by: String(req.user._id) }, '[users] active changed');
-  return ok(res, { id: String(user._id), isActive: user.isActive, tokenVersion: user.tokenVersion });
+  // Deactivation must be felt immediately, not on the user's next API call. Push the reason to
+  // every device they have open, then drop those sockets. Both clients render the message from
+  // the CMS `account.deactivated_*` keys and route back to the login screen.
+  let disconnected = 0;
+  if (!isActive) {
+    disconnected = await disconnectUser(user._id, 'account:deactivated', {
+      userId: String(user._id),
+      reason: 'deactivated',
+      at: new Date().toISOString(),
+    });
+  }
+
+  logger.info(
+    { userId: String(user._id), isActive, by: String(req.user._id), socketsDisconnected: disconnected },
+    '[users] active changed',
+  );
+  return ok(res, {
+    id: String(user._id),
+    isActive: user.isActive,
+    tokenVersion: user.tokenVersion,
+    // Tells the admin whether the person was actually online to receive it.
+    socketsDisconnected: disconnected,
+  });
 });
 
 /* POST /api/users/:id/reset-password */

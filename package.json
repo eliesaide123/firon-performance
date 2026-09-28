@@ -13,11 +13,12 @@
     "seed:content": "npm --prefix backend run seed:content",
     "install:all": "npm --prefix backend install && npm --prefix cms install && npm --prefix mobile install",
     "pods": "cd mobile/ios && pod install",
-    "test:integration": "npm run test:proxy && npm run test:realtime && npm run test:authz",
+    "test:integration": "npm run test:proxy && npm run test:realtime && npm run test:authz && npm run test:deactivation",
     "test:proxy": "npx tsx tests/clientProxy.test.ts",
     "test:realtime": "node tests/realtime.test.js",
     "typecheck:shared": "npm --prefix shared run typecheck",
-    "test:authz": "node tests/authorization.test.js"
+    "test:authz": "node tests/authorization.test.js",
+    "test:deactivation": "node tests/deactivation.test.js"
   },
   "engines": {
     "node": ">=20"

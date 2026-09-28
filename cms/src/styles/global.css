@@ -828,3 +828,6 @@ select.input { appearance: none; cursor: pointer;
   outline-offset: 2px;
 }
 .pressable--disabled { cursor: default; opacity: 0.55; }
+
+/* FP_Pressable used as a group-tree row keeps the flex layout (.pressable is display:block). */
+.grouptree__item.pressable { display: flex; align-items: center; padding: 8px 10px; text-align: left; }

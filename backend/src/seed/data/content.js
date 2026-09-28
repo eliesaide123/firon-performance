@@ -347,6 +347,15 @@ const ROWS = [
   /* ------------------------------- guest preview ------------------------------- */
   /* Shown on a fresh install before anyone signs in (CONTRACT §13). The app renders a
      populated, logged-in-looking client Home; any tap opens the login screen. */
+  /* ------------------------------- account state ------------------------------- */
+  /* Shown when an admin deactivates an account while the person is signed in. Editable here so
+     the wording can change without shipping either client. */
+  ['account.deactivated_title', T, 'You have been signed out', 'account', 'global', 'Account — deactivated title'],
+  ['account.deactivated_body', T, "We're sorry — your account has been deactivated. Please contact your administrator for more information.", 'account', 'global', 'Account — deactivated body'],
+  ['account.deactivated_cta', T, 'Back to sign in', 'account', 'global', 'Account — deactivated button'],
+  ['account.revoked_title', T, 'Your session has ended', 'account', 'global', 'Account — session revoked title'],
+  ['account.revoked_body', T, 'Your access was changed by an administrator. Please sign in again.', 'account', 'global', 'Account — session revoked body'],
+
   ['guest.banner_title', T, 'Preview mode', 'guest', 'global', 'Guest — banner title'],
   ['guest.banner_body', T, 'Sign in to start training with your coach', 'guest', 'global', 'Guest — banner body'],
   ['guest.banner_cta', T, 'Sign in', 'guest', 'global', 'Guest — banner button'],

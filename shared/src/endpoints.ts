@@ -18,6 +18,7 @@ import type {
   AppNotification,
   AuthTokens,
   Category,
+  AssignTrainerResult,
   ClientDetail,
   ContentBulkPatch,
   ContentGroupSummary,
@@ -44,6 +45,7 @@ import type {
   RegisterResponse,
   RosterEntry,
   SearchResults,
+  SeedDefaultsResult,
   SuggestedVideo,
   TrainerPrefs,
   TrainerProfile,
@@ -157,8 +159,8 @@ export const api = {
     remove(id: string, o?: CallOptions): Promise<{ ok: true }> {
       return http.del(`/content/${id}`, undefined, o);
     },
-    seedDefaults(body?: { force?: boolean }, o?: CallOptions): Promise<{ created: number; skipped: number }> {
-      return http.post('/content/seed-defaults', body ?? {}, { timeoutMs: 60000, ...o });
+    seedDefaults(body?: { force?: boolean }, o?: CallOptions): Promise<SeedDefaultsResult> {
+      return http.post<SeedDefaultsResult>('/content/seed-defaults', body ?? {}, { timeoutMs: 60000, ...o });
     },
   },
 
@@ -229,7 +231,8 @@ export const api = {
 
   /* ================= categories ================= */
   categories: {
-    list(query?: { kind?: string; activeOnly?: boolean }, o?: CallOptions): Promise<Category[]> {
+    /** `includeInactive` is the flag the backend honours (staff only); there is no `activeOnly`. */
+    list(query?: { kind?: string; includeInactive?: boolean }, o?: CallOptions): Promise<Category[]> {
       return http.get<Category[]>('/categories', { query: query as Query, ...o });
     },
     create(body: Partial<Category>, o?: CallOptions): Promise<Category> {
@@ -245,7 +248,10 @@ export const api = {
 
   /* ================= exercises ================= */
   exercises: {
-    list(query?: { q?: string; muscleGroup?: string; page?: number; limit?: number }, o?: CallOptions): Promise<ClientProxyResult<Exercise[]>> {
+    list(
+      query?: { q?: string; muscleGroup?: string; equipment?: string; includeInactive?: boolean; page?: number; limit?: number },
+      o?: CallOptions,
+    ): Promise<ClientProxyResult<Exercise[]>> {
       return http.getWithMeta<Exercise[]>('/exercises', { query: query as Query, ...o });
     },
     byId(id: string, o?: CallOptions): Promise<Exercise> {
@@ -273,8 +279,8 @@ export const api = {
     byId(id: string, o?: CallOptions): Promise<ClientDetail> {
       return http.get<ClientDetail>(`/clients/${id}`, o);
     },
-    assignTrainer(id: string, body: { trainerId: string }, o?: CallOptions): Promise<User> {
-      return http.post<User>(`/clients/${id}/assign-trainer`, body, { successMessage: 'Trainer assigned', ...o });
+    assignTrainer(id: string, body: { trainerId: string }, o?: CallOptions): Promise<AssignTrainerResult> {
+      return http.post<AssignTrainerResult>(`/clients/${id}/assign-trainer`, body, { successMessage: 'Trainer assigned', ...o });
     },
   },
 

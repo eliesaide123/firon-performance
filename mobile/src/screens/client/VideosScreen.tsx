@@ -60,7 +60,7 @@ export const VideosScreen: React.FC = () => {
   const tileWidth = Math.floor((width - FP_GUTTER * 2 - GRID_GAP) / 2);
 
   const categories = useResource<Category[]>(QK.categories, () =>
-    api.categories.list({ kind: 'video', activeOnly: true }),
+    api.categories.list({ kind: 'video' }),
   );
 
   const videos = useResource<Video[]>(

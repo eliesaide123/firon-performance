@@ -61,7 +61,7 @@ export const SearchScreen: React.FC = () => {
   }, [query]);
 
   const categories = useResource<Category[]>(QK.categories, () =>
-    api.categories.list({ kind: 'video', activeOnly: true }),
+    api.categories.list({ kind: 'video' }),
   );
 
   const results = useResource<SearchResults>(

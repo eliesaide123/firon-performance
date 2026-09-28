@@ -23,13 +23,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FP_SOCKET_EVENTS, api } from '@firon/shared';
 import { CONTENT_GROUPS, CONTENT_TYPES, LOCALES, PLATFORMS } from '../lib/constants.js';
 import { fmtAgo, valuePreview } from '../lib/format.js';
+import prefs from '../lib/prefs.js';
 import qk from '../lib/queryKeys.js';
 import useDebounced from '../hooks/useDebounced.js';
 import { useSocketEvent } from '../context/SocketContext.jsx';
 import {
   FP_Badge, FP_Button, FP_Card, FP_ConfirmDialog, FP_EmptyState, FP_ErrorState,
-  FP_IconButton, FP_PhonePreview, FP_PREVIEW_SCREENS, FP_Screen, FP_SearchInput,
-  FP_Select, FP_SkeletonRows, FP_Table, useToast,
+  FP_IconButton, FP_PhonePreview, FP_PREVIEW_SCREENS, FP_Pressable, FP_Screen,
+  FP_SearchInput, FP_Select, FP_SkeletonRows, FP_Table, useToast,
 } from '../components/index.ts';
 import ContentCreateModal from './content/ContentCreateModal.jsx';
 import ContentValueEditor from './content/ContentValueEditor.jsx';
@@ -47,8 +48,9 @@ export default function Content() {
 
   /* ------------------------------- filters ------------------------------- */
   const [group, setGroup] = useState('');
-  const [platform, setPlatform] = useState('');
-  const [locale, setLocale] = useState('en');
+  /* Opens on the operator's defaults from Settings (src/lib/prefs.js). */
+  const [platform, setPlatform] = useState(() => prefs.platform);
+  const [locale, setLocale] = useState(() => prefs.locale);
   const [screen, setScreen] = useState('');
   const [type, setType] = useState('');
   const [search, setSearch] = useState('');
@@ -390,24 +392,22 @@ export default function Content() {
             <div className="mt3"><FP_ErrorState error={groupsQuery.error} onRetry={groupsQuery.refetch} /></div>
           ) : null}
           <div className="mt2 col grouptree__list">
-            <button
-              type="button"
+            <FP_Pressable
               className={`grouptree__item ${group === '' ? 'is-active' : ''}`}
-              onClick={() => setGroup('')}
+              onPress={() => setGroup('')}
             >
               All groups
               <span className="grouptree__count">{totalCount || ''}</span>
-            </button>
+            </FP_Pressable>
             {groupNames.map((g) => (
-              <button
+              <FP_Pressable
                 key={g}
-                type="button"
                 className={`grouptree__item ${group === g ? 'is-active' : ''}`}
-                onClick={() => setGroup(g)}
+                onPress={() => setGroup(g)}
               >
                 {g}
                 <span className="grouptree__count">{countFor(g)}</span>
-              </button>
+              </FP_Pressable>
             ))}
           </div>
         </FP_Card>

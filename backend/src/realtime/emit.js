@@ -86,7 +86,35 @@ async function roomSize(room) {
   }
 }
 
+/**
+ * Force every live socket belonging to a user off the server.
+ *
+ * Bumping `tokenVersion` stops the NEXT request, but a signed-in client would otherwise sit there
+ * unaware until it happens to call the API. Deactivation needs to be felt immediately, so we emit
+ * the reason first, give the clients a beat to render it, then cut the connections.
+ */
+async function disconnectUser(userId, event, payload) {
+  if (!io) {
+    if (!warned) {
+      warned = true;
+      logger.warn('[socket] io not initialised — disconnectUser is a no-op');
+    }
+    return 0;
+  }
+  const room = `user:${String(userId)}`;
+  const sockets = await io.in(room).fetchSockets();
+  if (event) io.to(room).emit(event, payload || {});
+  // Let the event flush before tearing the sockets down.
+  setTimeout(() => {
+    sockets.forEach(s => {
+      try { s.disconnect(true); } catch { /* already gone */ }
+    });
+  }, 400);
+  return sockets.length;
+}
+
 module.exports = {
+  disconnectUser,
   setIO,
   idOf,
   getIO,

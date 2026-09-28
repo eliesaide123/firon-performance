@@ -168,7 +168,7 @@ export const DEFAULT_ERROR_MESSAGES: Record<string, string> = {
   [FP_ERROR_CODES.UNKNOWN]: 'Something went wrong. Please try again.',
   // Server codes whose default copy is worth spelling out; the server's own `message` still wins.
   INVALID_CREDENTIALS: 'Wrong email/phone or password',
-  ACCOUNT_DISABLED: 'This account has been deactivated. Contact your coach.',
+  ACCOUNT_DISABLED: "We're sorry — your account has been deactivated. Please contact your administrator for more information.",
   INVALID_OTP: 'That code is not right. Please check and try again.',
   OTP_EXPIRED: 'That code has expired. Request a new one.',
   OTP_ATTEMPTS_EXCEEDED: 'Too many incorrect codes. Request a new one.',

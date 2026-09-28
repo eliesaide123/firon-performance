@@ -57,3 +57,6 @@ tmp/
 # The workflow lives at .github/workflows-pending/ci.yml until the scope is granted — see the
 # README there. Ignored so `git add -A` can't reintroduce the rejected push.
 .github/workflows/
+
+# editor/tooling backups
+*.bak

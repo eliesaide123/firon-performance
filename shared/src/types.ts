@@ -500,12 +500,14 @@ export interface RosterEntry {
   goal?: Goal;
   membershipLabel?: string;
   dietPlanSummary?: {
+    id: string;
     name: string;
     kcal: number;
     protein: number;
     carbs: number;
     fat: number;
-    mealCount: number;
+    /** Number of meals in the plan. The server calls this `meals`, not `mealCount`. */
+    meals: number;
   } | null;
 }
 
@@ -519,14 +521,18 @@ export interface TrainerStats {
 
 export interface ClientDetail {
   client: User;
+  /** Verified against `GET /clients/:id` — not the shape CONTRACT §5 originally sketched. */
   stats: {
+    adherencePct: number;
+    status: RosterStatus;
+    weekNumber: number;
     sessionsCompleted: number;
+    sessionsThisWeek: number;
+    weeklyTarget: number;
     weightChangeKg: number;
     lastActive: string | null;
-    weekDone: number;
-    weekTarget: number;
-    adherencePct: number;
-    programLabel: string;
+    daysDone: number;
+    daysTotal: number;
   };
   trainingPlan: TrainingPlan | null;
   dietPlan: DietPlan | null;
@@ -591,6 +597,20 @@ export interface AppNotification extends Timestamped {
 }
 
 /* ---------- misc ---------- */
+
+/** `POST /clients/:id/assign-trainer` */
+export interface AssignTrainerResult {
+  clientId: string;
+  trainerId: string;
+  trainerName: string;
+}
+
+/** `POST /content/seed-defaults` */
+export interface SeedDefaultsResult {
+  inserted: number;
+  skipped: number;
+  keys: string[];
+}
 
 /** `POST /notifications/test` */
 export interface TestNotificationResult {

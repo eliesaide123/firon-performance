@@ -17,7 +17,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import { FP_SOCKET_EVENTS, api } from '@firon/shared';
+import { FP_SOCKET_EVENTS, api, fpAlert } from '@firon/shared';
 import { SOCKET_URL } from '../bootstrap.js';
 import tokenStore from '../lib/tokenStore.js';
 import log from '../lib/log.js';
@@ -64,7 +64,10 @@ export const EVENT_MAP = {
 const SocketCtx = createContext(null);
 
 export function FP_SocketProvider({ children }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  /* kept in a ref so the socket effect never re-runs just because logout changed identity */
+  const cbRef = useRef({ logout });
+  cbRef.current = { logout };
   const queryClient = useQueryClient();
   const toast = useToast();
 
@@ -123,6 +126,36 @@ export function FP_SocketProvider({ children }) {
     socket.on('disconnect', (reason) => {
       setStatus('disconnected');
       log.warn('socket disconnected:', reason);
+    });
+
+    /* An admin deactivated this account. The server pushes this then drops the socket, so it is
+       the only chance to explain before the session ends. The wording lives in the CMS
+       (`account.deactivated_*`) and is read from the PUBLIC content endpoint, because the
+       user's token is already void by this point. */
+    socket.on(E.ACCOUNT_DEACTIVATED, async () => {
+      log.warn('account deactivated by an admin — signing out');
+      let copy = {
+        title: 'You have been signed out',
+        body: "We're sorry — your account has been deactivated. Please contact your administrator for more information.",
+        cta: 'Back to sign in',
+      };
+      try {
+        const map = await api.content.map(
+          { group: 'account', platform: 'mobile' },
+          { auth: false, showAlert: false, retries: 0 },
+        );
+        copy = {
+          title: map['account.deactivated_title']?.value ?? copy.title,
+          body: map['account.deactivated_body']?.value ?? copy.body,
+          cta: map['account.deactivated_cta']?.value ?? copy.cta,
+        };
+      } catch {
+        /* keep the compiled fallback — never block sign-out on a fetch */
+      }
+      fpAlert.error(copy.title, copy.body, {
+        actions: [{ label: copy.cta, kind: 'primary' }],
+      });
+      try { await cbRef.current.logout(); } catch { /* already cleared */ }
     });
 
     socket.io.on('reconnect_attempt', () => {

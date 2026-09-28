@@ -222,7 +222,19 @@ function toFPError(
   });
 }
 
+/**
+ * Codes that mean the session is over regardless of HTTP status, so the client must clear its
+ * tokens and return to login rather than showing a generic error.
+ *
+ * `ACCOUNT_DISABLED` is the important one: the backend answers **403**, not 401, when an admin
+ * deactivates an account. The socket push (`account:deactivated`) normally gets there first, but
+ * if the socket is down — backgrounded app, offline, never connected — this is the only signal,
+ * and without it the user would sit on a dead session seeing "Not allowed".
+ */
+const TERMINAL_SESSION_CODES = new Set(['ACCOUNT_DISABLED', 'TOKEN_REVOKED', 'INVALID_REFRESH_TOKEN']);
+
 const ALERT_TITLES: Record<string, string> = {
+  ACCOUNT_DISABLED: 'Account deactivated',
   [FP_ERROR_CODES.NETWORK]: 'No connection',
   [FP_ERROR_CODES.TIMEOUT]: 'Request timed out',
   [FP_ERROR_CODES.UNAUTHORIZED]: 'Session expired',
@@ -526,6 +538,14 @@ export async function clientProxy<TResponse, TBody = unknown>(
 
     /* ---------- failure ---------- */
     const error = toFPError(null, { method, path: options.path, status: raw.status, body: raw.body });
+
+    // A terminal code ends the session immediately — no refresh attempt, it cannot help.
+    if (TERMINAL_SESSION_CODES.has(String(error.code)) && options.auth !== false) {
+      await cfg.onUnauthenticated(error);
+      cfg.onError?.(error);
+      raiseAlert(error, opts);
+      throw error;
+    }
 
     // 401 → refresh once, then replay the original request.
     const isAuthFailure = raw.status === 401 && error.code !== FP_ERROR_CODES.NOT_VERIFIED;
