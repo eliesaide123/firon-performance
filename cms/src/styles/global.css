@@ -568,6 +568,31 @@ select.input { appearance: none; cursor: pointer;
 .media-pick__thumb img, .media-pick__thumb video { width: 100%; height: 100%; object-fit: cover; }
 .media-pick__label { padding: 7px 8px; font-size: 11.5px; font-weight: 600; }
 
+/* Play badge over a video thumbnail, so a still frame reads as playable rather than as a
+   broken image. Purely decorative — the whole tile is the click target. */
+.media-thumb__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.media-thumb__play > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding-left: 2px;
+  border-radius: 50%;
+  color: var(--bg);
+  background: color-mix(in srgb, #fff 88%, transparent);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 45%);
+}
+/* the thumb spans need to anchor the badge */
+.media-card__thumb, .media-pick__thumb { position: relative; }
+
 /* ============================== plan builder =========================== */
 .builder { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
 @media (max-width: 1100px) { .builder { grid-template-columns: minmax(0, 1fr) } }
@@ -799,7 +824,61 @@ select.input { appearance: none; cursor: pointer;
   position: relative; display: block; width: 100%; padding: 0; border: none;
   background: none; cursor: pointer; color: inherit;
 }
-.media-preview { width: 100%; border-radius: var(--radius-thumb); background: var(--bg); }
+/* ---------------------------- media preview ---------------------------- */
+/* Assets are user-uploaded, so the player has to cope with anything: a 9:16 phone clip, a wide
+   screenshot, a tiny icon. The frame is a fixed, bounded stage and the media is contained inside
+   it — never cropped, never taller than the viewport, never distorted. */
+.media-preview__frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 220px;
+  max-height: min(58vh, 520px);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-thumb);
+  overflow: hidden;
+  /* A subtle checker reads as "transparent/letterboxed" rather than a broken background, and
+     separates the asset from the modal behind it. */
+  background-color: var(--surface-3);
+  background-image:
+    linear-gradient(45deg, color-mix(in srgb, var(--bg) 55%, transparent) 25%, transparent 25%),
+    linear-gradient(-45deg, color-mix(in srgb, var(--bg) 55%, transparent) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, color-mix(in srgb, var(--bg) 55%, transparent) 75%),
+    linear-gradient(-45deg, transparent 75%, color-mix(in srgb, var(--bg) 55%, transparent) 75%);
+  background-size: 18px 18px;
+  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+}
+
+.media-preview {
+  display: block;
+  max-width: 100%;
+  max-height: min(56vh, 500px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  /* Lifts the asset off the checker so its own edges are readable. */
+  box-shadow: 0 6px 22px -8px rgb(0 0 0 / 65%);
+  background: var(--bg);
+}
+
+/* Native controls sit on a dark chrome; give the element room so they are not clipped. */
+video.media-preview { min-height: 180px; }
+
+/* A very small image (an icon, a 64px logo) should not be blown up to fill the stage. */
+img.media-preview { image-rendering: auto; }
+
+.media-preview__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
 .url-cell { max-width: 260px; display: inline-block; vertical-align: bottom; }
 .cell-textarea { min-height: 44px; }
 .grid--form { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }

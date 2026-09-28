@@ -264,11 +264,33 @@ export default function Media() {
       <FP_Modal open={Boolean(preview)} onClose={() => setPreview(null)} title={preview?.title ?? 'Preview'} size="md">
         {preview ? (
           <>
-            {preview.kind === 'video' ? (
-              <video src={resolveMediaUrl(preview.url)} controls className="media-preview" />
-            ) : (
-              <img src={resolveMediaUrl(preview.url)} alt={preview.title ?? ''} className="media-preview" />
-            )}
+            <div className="media-preview__frame">
+              {preview.kind === 'video' ? (
+                <video
+                  key={preview.id}
+                  src={resolveMediaUrl(preview.url)}
+                  className="media-preview"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={preview.thumbnailUrl ? resolveMediaUrl(preview.thumbnailUrl) : undefined}
+                />
+              ) : (
+                <img
+                  key={preview.id}
+                  src={resolveMediaUrl(preview.url)}
+                  alt={preview.title ?? ''}
+                  className="media-preview"
+                  loading="lazy"
+                />
+              )}
+            </div>
+            {preview.width && preview.height ? (
+              <div className="media-preview__meta">
+                {preview.width} × {preview.height} px
+                {preview.durationSec ? ` · ${fmtDuration(preview.durationSec)}` : ''}
+              </div>
+            ) : null}
             <div className="mt3">
               <FP_KeyValueRow label="Status" value={<FP_StatusBadge status={preview.status} />} />
               <FP_KeyValueRow label="Kind" value={preview.kind} />

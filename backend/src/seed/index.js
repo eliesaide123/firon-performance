@@ -39,6 +39,7 @@ const userData = require('./data/users');
 const contentDefaults = require('./data/content');
 const categoryData = require('./data/categories');
 const mediaData = require('./data/media');
+const { generateSeedMedia } = require('./generateMedia');
 const { videos: videoData, progress: progressData } = require('./data/videos');
 const exerciseData = require('./data/exercises');
 const { trainingPlans, dietPlans } = require('./data/plans');
@@ -218,6 +219,17 @@ async function seedAll() {
 
   /* ---- media ---- */
   step('Seeding media assets…');
+  // The rows below point at /uploads/seed-*. Without the files themselves every preview in the
+  // CMS and both apps renders as a 404, which reads as a broken player rather than a missing
+  // fixture. Generate them if they are not already there.
+  {
+    const gen = generateSeedMedia();
+    if (gen.ffmpeg === false) {
+      step('  ffmpeg not found — media files not generated (previews will 404)');
+    } else if (gen.created) {
+      step(`  generated ${gen.created} media file(s)`);
+    }
+  }
   const mediaByRef = {};
   for (const spec of mediaData) {
     const { ref, uploadedByRef, reviewedByRef, gradientIndex, ...rest } = spec;
